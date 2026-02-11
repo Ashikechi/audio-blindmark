@@ -1,5 +1,6 @@
 **WIP: This is a repository of a research work in progress. All the code are not stable and can not be used in production.**
 # Installation
+You should install [Poetry](https://python-poetry.org/) first.
 ```sh
 poetry install
 ```
