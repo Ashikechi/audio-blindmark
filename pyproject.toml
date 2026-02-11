@@ -1,0 +1,31 @@
+[project]
+name = "audio-blindmark"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "NightSpaceC",email = "NightSpaceC@outlook.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy (>=2.4.2,<3.0.0)",
+    "bitarray (>=3.8.0,<4.0.0)",
+    "pycryptodome (>=3.23.0,<4.0.0)",
+    "blake3 (>=1.0.8,<2.0.0)",
+    "setuptools (>=82.0.0,<83.0.0)",
+    "cython (>=3.2.4,<4.0.0)",
+    "scipy (>=1.17.0,<2.0.0)",
+    "build (>=1.4.0,<2.0.0)",
+]
+
+[build-system]
+requires = ["setuptools>=82.0.0,<83.0.0", "cython>=3.2.4,<4.0.0", "numpy>=2.4.2,<3.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+snakeviz = "^2.2.2"
+pytest-benchmark = "^5.2.3"
