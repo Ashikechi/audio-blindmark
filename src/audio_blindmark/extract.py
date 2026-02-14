@@ -32,11 +32,11 @@ def extract(audio: wave.Wave_read, decoder: Decoder, extractor: base.BaseExtract
         raise ExtractError('The header is lost')
 
     l = int.from_bytes(packets[0][:4], 'little')
-    data = [packets[0][4:l + 4]]
+    full_data = [packets[0][4:l + 4]]
 
     for i in range(1, (l + 4 - 1) // data_length + 1):
         if i not in packets:
             raise ExtractError(f'{i * data_length - 4}-{min((i + 1) * data_length - 4, l)} is lost')
-        data.append(packets[i][:l - (i * data_length - 4)])
+        full_data.append(packets[i][:l - (i * data_length - 4)])
 
-    return b''.join(data)
+    return b''.join(full_data)

@@ -1,7 +1,6 @@
-from setuptools import setup, Extension
 from Cython.Build import cythonize
 from numpy import get_include
-
+from setuptools import Extension, setup
 
 cython_extensions: list[Extension] = cythonize([
         Extension(

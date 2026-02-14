@@ -3,7 +3,7 @@ import random
 import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
 
-from creedsolo import ReedSolomonError, RSCodec  # pylint: disable = E0611
+from creedsolo import ReedSolomonError, RSCodec
 
 
 def test_creedsolo_sample():
@@ -13,7 +13,7 @@ def test_creedsolo_sample():
     dec, dec_enc, errata_pos = rsc.decode(iter(enc))
     assert bytes(iter(dec)) == msg
     assert bytes(iter(dec_enc)) == enc
-    assert list(errata_pos) == []
+    assert list(errata_pos) == []  # pylint: disable=C1803
 
 def test_creedsolo_correction():
     rsc = RSCodec(10)

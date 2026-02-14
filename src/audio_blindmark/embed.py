@@ -6,7 +6,7 @@ from numpy.random import Generator
 from . import base
 from .coder import Encoder
 from .utils.random import get_rng
-from .utils.random_tools import get_random_bytes  # pylint: disable = E0611, E0401
+from .utils.random_tools import get_random_bytes
 from .wave_helper import WaveReadHelper, WaveWriteHelper
 
 

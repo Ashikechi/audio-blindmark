@@ -1,4 +1,4 @@
-from libc.stdint cimport * # pyright: ignore[reportWildcardImportFromLibrary]
+from libc.stdint cimport *
 from numpy.random cimport bitgen
 
 
