@@ -22,12 +22,12 @@ class WaveWriteHelper:
         self.width = f.getsampwidth()
 
     def write(self, channels: list[np.ndarray]) -> None:
-        assert(len(channels) == self.channel_num)
+        assert len(channels) == self.channel_num
         for each in channels:
-            assert(each.ndim == 1)
+            assert each.ndim == 1
         frame_num = channels[0].shape[0]
         for each in channels:
-            assert(each.shape[0] == frame_num)
+            assert each.shape[0] == frame_num
 
         int_stack = np.stack(channels, axis = -1).reshape(-1).astype(f'<i{self.width}')
         self.f.writeframes(int_stack.tobytes())

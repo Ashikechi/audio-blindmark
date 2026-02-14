@@ -13,7 +13,7 @@ def test_reedsolo_sample():
     dec, dec_enc, errata_pos = rsc.decode(iter(enc))
     assert bytes(iter(dec)) == msg
     assert bytes(iter(dec_enc)) == enc
-    assert list(errata_pos) == []
+    assert list(errata_pos) == []  # pylint: disable=C1803
 
 def test_reedsolo_correction():
     rsc = RSCodec(10)

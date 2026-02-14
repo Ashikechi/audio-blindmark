@@ -13,7 +13,7 @@ class FakeEmbedder(BaseEmbedder):
         return 255
 
     def embed(self, wave: np.ndarray[tuple[int], np.dtype[np.float64]], data: bytes) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
-        assert(wave.shape[0] == self.wave_length())
+        assert wave.shape[0] == self.wave_length()
 
         if round(wave[0]) == round(wave[1]) == round(wave[2]) == round(wave[-3]) == round(wave[-2]) == round(wave[-1]) == 0:
             raise EmbedError
@@ -36,7 +36,7 @@ class FakeExtractor(BaseExtractor):
         return 255
 
     def extract(self, wave: np.ndarray[tuple[int], np.dtype[np.float64]]) -> bytes:
-        assert(wave.shape[0] == self.wave_length())
+        assert wave.shape[0] == self.wave_length()
 
         if not round(wave[0]) == round(wave[1]) == round(wave[2]) == round(wave[-3]) == round(wave[-2]) == round(wave[-1]):
             raise ExtractError
