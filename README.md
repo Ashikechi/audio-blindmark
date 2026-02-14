@@ -7,6 +7,7 @@ poetry install
 For developers, you can also install with test tools.
 ```sh
 poetry install --with dev
+git config core.hooksPath .githooks
 ```
 # Packaging
 ```sh

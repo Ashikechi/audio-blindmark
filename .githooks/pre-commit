@@ -1,0 +1,26 @@
+#!/bin/sh
+
+if ! poetry run python build_dev.py
+then
+    exit 1
+fi
+
+if ! poetry run mypy .
+then
+    exit 1
+fi
+
+if ! poetry run pylint .
+then
+    exit 1
+fi
+
+if ! poetry run isort --check-only .
+then
+    exit 1
+fi
+
+if ! poetry run python test.py
+then
+    exit 1
+fi
