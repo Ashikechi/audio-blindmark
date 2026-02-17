@@ -31,8 +31,7 @@ cpdef bytearray encode(const uint8_t[::1] data):
     return r
 
 cpdef bytearray decode(const uint8_t[::1] data):
-    assert data is not None
-    assert data.shape[0] & 1 == 0
+    assert data is not None and data.shape[0] & 1 == 0
 
     cdef bytearray result = bytearray(data.shape[0] // 2)
     cdef int i
