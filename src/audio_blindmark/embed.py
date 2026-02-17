@@ -43,7 +43,6 @@ def embed(raw_audio: wave.Wave_read, data: bytes, output_audio: wave.Wave_write,
                 raw_channels[earliest_channel][p:p + wave_length],
                 encoder.encode(i, packets[i])
             )
-            print(f'Embed {i} at {p} of {earliest_channel}')
             channel_pointers[earliest_channel] += wave_length
             i += 1
         except base.EmbedError:
@@ -65,7 +64,6 @@ def embed(raw_audio: wave.Wave_read, data: bytes, output_audio: wave.Wave_write,
                 raw_channels[earliest_channel][p:p + wave_length],
                 encoder.encode(seq, packets[seq])
             )
-            print(f'Embed {seq} at {p} of {earliest_channel}')
             channel_pointers[earliest_channel] += wave_length
         except base.EmbedError:
             output_channels[earliest_channel][p] = raw_channels[earliest_channel][p]

@@ -16,14 +16,13 @@ def extract(audio: wave.Wave_read, decoder: Decoder, extractor: base.BaseExtract
     wave_length = extractor.wave_length()
     data_length = decoder.data_length(extractor.data_length())
 
-    for i, each in enumerate(channels):
+    for each in channels:
         p = 0
         while frame_num - p >= wave_length:
             try:
                 seq, data = decoder.decode(extractor.extract(each[p:p + wave_length]))
                 if seq not in packets:
                     packets[seq] = data
-                print(f'Extract {seq} at {p} of {i}')
                 p += wave_length
             except (base.ExtractError, DecodeError):
                 p += 1
