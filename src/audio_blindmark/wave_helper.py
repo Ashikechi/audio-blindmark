@@ -9,10 +9,10 @@ class WaveReadHelper:
         self.channel_num = f.getnchannels()
         self.width = f.getsampwidth()
 
-    def read(self, frame_num: int) -> tuple[list[np.ndarray], int]:
+    def read(self, frame_num: int) -> tuple[list[np.ndarray[tuple[int], np.dtype[np.float64]]], int]:
         data = self.f.readframes(frame_num)
         frame_num = len(data) // (self.channel_num * self.width)
-        channels = [*np.frombuffer(data, f'<i{self.width}').astype(np.float64).reshape([-1, self.channel_num]).T]
+        channels = [*np.array(np.frombuffer(data, f'<i{self.width}').astype(np.float64).reshape([-1, self.channel_num]).T, order = 'C')]
         return channels, frame_num
 
 class WaveWriteHelper:
@@ -21,7 +21,7 @@ class WaveWriteHelper:
         self.channel_num = f.getnchannels()
         self.width = f.getsampwidth()
 
-    def write(self, channels: list[np.ndarray]) -> None:
+    def write(self, channels: list[np.ndarray[tuple[int], np.dtype[np.float64]]]) -> None:
         assert len(channels) == self.channel_num
         for each in channels:
             assert each.ndim == 1
