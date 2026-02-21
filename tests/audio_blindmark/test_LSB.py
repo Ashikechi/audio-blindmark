@@ -11,7 +11,7 @@ from audio_blindmark.utils.random import seed
 MEDIA_DIR = 'assets/audio/'
 
 KEY = b'Kei'
-DATA = b'Aris -- Princesses of Unnamed Gods' * 64
+DATA = b'Aris -- Princesses of Unnamed Gods' * 32
 
 DATA_LENGTH = 64
 

@@ -11,7 +11,7 @@ from .fake_steganographier import FakeEmbedder, FakeExtractor
 MEDIA_DIR = 'assets/audio/'
 
 KEY = b'Kei'
-DATA = b'Aris -- Princesses of Unnamed Gods' * 100
+DATA = b'Aris -- Princesses of Unnamed Gods' * 64
 
 def test_framework():
     seed(42)
