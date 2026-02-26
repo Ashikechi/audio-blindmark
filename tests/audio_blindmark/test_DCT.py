@@ -30,7 +30,7 @@ def test_DCT():
     with wave.open(MEDIA_DIR + 'output_DCT.wav', 'r') as audio:
         assert extract(audio, decoder, extractor) == DATA
 
-@pytest.mark.benchmark(group = 'DCT-embed')
+@pytest.mark.benchmark(group='DCT-embed')
 def test_benchmark_DCT_embed(benchmark: BenchmarkFixture):
     def do():
         seed(42)
@@ -42,7 +42,7 @@ def test_benchmark_DCT_embed(benchmark: BenchmarkFixture):
                 embed(raw_audio, DATA, output_audio, encoder, embedder)
     benchmark(do)
 
-@pytest.mark.benchmark(group = 'DCT-extract')
+@pytest.mark.benchmark(group='DCT-extract')
 def test_benchmark_DCT_extract(benchmark: BenchmarkFixture):
     def do():
         extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH)

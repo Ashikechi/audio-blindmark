@@ -215,7 +215,7 @@ cpdef ca.array rwh_primes1(uint64_t n):
 #     return dividend
 
 # ### Main GF multiplication routine ###
-# cpdef uint64_t gf_mult_noLUT_slow(uint64_t x, uint64_t y, uint64_t prim = 0):  # pylint: disable=C0103
+# cpdef uint64_t gf_mult_noLUT_slow(uint64_t x, uint64_t y, uint64_t prim=0):  # pylint: disable=C0103
 #     '''Multiplication in Galois Fields on-the-fly without using a precomputed look-up table (and thus it's slower) by using the standard carry-less multiplication + modular reduction using an irreducible prime polynomial.'''
 #     # Multiply the gf numbers
 #     result = cl_mult(x, y)
@@ -225,7 +225,7 @@ cpdef ca.array rwh_primes1(uint64_t n):
 
 #     return result
 
-cpdef uint64_t gf_mult_noLUT(uint64_t x, uint64_t y, uint64_t prim = 0, uint64_t field_charac_full = 256, bool carryless = True):  # pylint: disable=C0103
+cpdef uint64_t gf_mult_noLUT(uint64_t x, uint64_t y, uint64_t prim=0, uint64_t field_charac_full=256, bool carryless=True):  # pylint: disable=C0103
     '''Galois Field integer multiplication on-the-fly without using a look-up table, using Russian Peasant Multiplication algorithm (faster than the standard multiplication + modular reduction). This is still slower than using a look-up table, but is the fastest alternative, and is often used in embedded circuits where storage space is limited (ie, no space for a look-up table).
     If prim is 0 and carryless=False, then the function produces the result for a standard integers multiplication (no carry-less arithmetics nor modular reduction).'''
     cdef uint64_t r = 0
@@ -239,7 +239,7 @@ cpdef uint64_t gf_mult_noLUT(uint64_t x, uint64_t y, uint64_t prim = 0, uint64_t
 
     return r
 
-cpdef ca.array find_prime_polys(uint64_t generator = 2, uint64_t c_exp = 8, bool fast_primes = False, bool single = False):
+cpdef ca.array find_prime_polys(uint64_t generator=2, uint64_t c_exp=8, bool fast_primes=False, bool single=False):
     '''Compute the list of prime polynomials for the given generator and galois field characteristic exponent.'''
     # fast_primes will output less results but will be significantly faster.
     # single will output the first prime polynomial found, so if all you want is to just find one prime polynomial to generate the LUT for Reed-Solomon to work, then just use that.
@@ -312,7 +312,7 @@ cpdef ca.array find_prime_polys(uint64_t generator = 2, uint64_t c_exp = 8, bool
     return correct_primes  # you can use the following to print the hexadecimal representation of each prime polynomial: print [hex(i) for i in correct_primes]
 
 cdef class GaloisField:
-    def __init__(self, prim: int = 0x11d, generator: int = 2, c_exp: int = 8) -> None:
+    def __init__(self, prim: int=0x11d, generator: int=2, c_exp: int=8) -> None:
         '''Precompute the logarithm and anti-log tables for faster computation later, using the provided primitive polynomial.
         These tables are used for multiplication/division since addition/substraction are simple XOR operations inside GF of characteristic 2.
         The basic idea is quite simple: since b ** (log_b(x), log_b(y)) == x * y given any number b (the base or generator of the logarithm), then we can use any number b to precompute logarithm and anti-log (exponentiation) tables to use for multiplying two numbers x and y.
@@ -488,7 +488,7 @@ cpdef tuple gf_poly_div(GaloisField gf, const uint64_t[::1] dividend, const uint
     remainder_view[...] = msg_out_view[separator:]
     return quotient, remainder
 
-cpdef ca.array gf_poly_square(GaloisField gf, const uint64_t[::1] poly): # pragma: no cover
+cpdef ca.array gf_poly_square(GaloisField gf, const uint64_t[::1] poly):  # pragma: no cover
     '''Linear time implementation of polynomial squaring. For details, see paper: "A fast software implementation for arithmetic operations in GF (2n)". De Win, E., Bosselaers, A., Vandenberghe, S., De Gersem, P., & Vandewalle, J. (1996, January). In Advances in Cryptology - Asiacrypt'96 (pp. 65-76). Springer Berlin Heidelberg.'''
     assert poly is not None
     cdef uint64_t length = poly.shape[0]
@@ -519,7 +519,7 @@ cpdef uint64_t gf_poly_eval(GaloisField gf, const uint64_t[::1] poly, uint64_t x
 
 ################### REED-SOLOMON ENCODING ###################
 
-cpdef ca.array rs_generator_poly(GaloisField gf, uint64_t nsym, uint64_t fcr, uint64_t generator = 2):
+cpdef ca.array rs_generator_poly(GaloisField gf, uint64_t nsym, uint64_t fcr, uint64_t generator=2):
     '''Generate an irreducible generator polynomial (necessary to encode a message into Reed-Solomon)'''
     cdef ca.array g = ca.clone(uint64_array_template, 1, False)
     g.data.as_ulonglongs[0] = 1
@@ -531,7 +531,7 @@ cpdef ca.array rs_generator_poly(GaloisField gf, uint64_t nsym, uint64_t fcr, ui
         g = gf_poly_mul(gf, g, t)
     return g
 
-cpdef list rs_generator_poly_all(GaloisField gf, uint64_t max_nsym, uint64_t fcr, uint64_t generator = 2):
+cpdef list rs_generator_poly_all(GaloisField gf, uint64_t max_nsym, uint64_t fcr, uint64_t generator=2):
     '''Generate all irreducible generator polynomials up to max_nsym (usually you can use n, the length of the message+ecc). Very useful to reduce processing time if you want to encode using variable schemes and nsym rates.'''
     #g_all = {}  # old approach using a dict
     #g_all[0] = g_all[1] = pa.array('Q', [1])
@@ -541,7 +541,7 @@ cpdef list rs_generator_poly_all(GaloisField gf, uint64_t max_nsym, uint64_t fcr
         g_all.append(rs_generator_poly(gf, nsym, fcr, generator))
     return g_all
 
-cpdef ca.array rs_simple_encode_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr = 0, uint64_t generator = 2, const uint64_t[::1] gen = None):
+cpdef ca.array rs_simple_encode_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr=0, uint64_t generator=2, const uint64_t[::1] gen=None):
     '''Simple Reed-Solomon encoding (mainly an example for you to understand how it works, because it's slower than the inlined function below)'''
     assert msg_in is not None
     if <uint64_t>msg_in.shape[0] + nsym > gf.field_charac:
@@ -562,7 +562,7 @@ cpdef ca.array rs_simple_encode_msg(GaloisField gf, const uint64_t[::1] msg_in, 
     # Return the codeword
     return msg_out
 
-cpdef ca.array rs_encode_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr = 0, uint64_t generator = 2, const uint64_t[::1] gen = None):
+cpdef ca.array rs_encode_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr=0, uint64_t generator=2, const uint64_t[::1] gen=None):
     '''Reed-Solomon main encoding function, using polynomial division (Extended Synthetic Division, the fastest algorithm available to my knowledge), better explained at http://research.swtch.com/field'''
     assert msg_in is not None
     if <uint64_t>msg_in.shape[0] + nsym > gf.field_charac:
@@ -612,7 +612,7 @@ cpdef ca.array inverted(const uint64_t[::1] msg):
     r_view[:] = msg[::-1]
     return r
 
-cpdef ca.array rs_calc_syndromes(GaloisField gf, const uint64_t[::1] msg, uint64_t nsym, uint64_t fcr = 0, uint64_t generator = 2):
+cpdef ca.array rs_calc_syndromes(GaloisField gf, const uint64_t[::1] msg, uint64_t nsym, uint64_t fcr=0, uint64_t generator=2):
     '''Given the received codeword msg and the number of error correcting symbols (nsym), computes the syndromes polynomial.
     Mathematically, it's essentially equivalent to a Fourrier Transform (Chien search being the inverse).
     '''
@@ -626,7 +626,7 @@ cpdef ca.array rs_calc_syndromes(GaloisField gf, const uint64_t[::1] msg, uint64
         r.data.as_ulonglongs[i + 1] = gf_poly_eval(gf, msg, gf.gf_pow(generator, i + fcr))
     return r
 
-cpdef ca.array rs_correct_errata(GaloisField gf, const uint64_t[::1] msg_in, const uint64_t[::1] synd, const uint64_t[::1] err_pos, uint64_t fcr = 0, uint64_t generator = 2): # err_pos is a list of the positions of the errors/erasures/errata
+cpdef ca.array rs_correct_errata(GaloisField gf, const uint64_t[::1] msg_in, const uint64_t[::1] synd, const uint64_t[::1] err_pos, uint64_t fcr=0, uint64_t generator=2):  # err_pos is a list of the positions of the errors/erasures/errata
     '''Forney algorithm, computes the values (error magnitude) to correct the input message.'''
     assert msg_in is not None and synd is not None and err_pos is not None
     cdef ca.array msg = ca.clone(uint64_array_template, msg_in.shape[0], False)
@@ -692,7 +692,7 @@ cpdef ca.array rs_correct_errata(GaloisField gf, const uint64_t[::1] msg_in, con
     msg = gf_poly_add(msg, e)  # equivalent to Ci = Ri - Ei where Ci is the correct message, Ri the received (senseword) message, and Ei the errata magnitudes (minus is replaced by XOR since it's equivalent in GF(2^p)). So in fact here we substract from the received message the errors magnitude, which logically corrects the value to what it should be.
     return msg
 
-cpdef ca.array rs_find_error_locator(GaloisField gf, const uint64_t[::1] synd, uint64_t nsym, const uint64_t[::1] erase_loc = None, uint64_t erase_count = 0):
+cpdef ca.array rs_find_error_locator(GaloisField gf, const uint64_t[::1] synd, uint64_t nsym, const uint64_t[::1] erase_loc=None, uint64_t erase_count=0):
     '''Find error/errata locator and evaluator polynomials with Berlekamp-Massey algorithm'''
     assert synd is not None
     # The idea is that BM will iteratively estimate the error locator polynomial.
@@ -778,7 +778,7 @@ cpdef ca.array rs_find_error_locator(GaloisField gf, const uint64_t[::1] synd, u
     # # Return result
     return err_loc
 
-cpdef ca.array rs_find_errata_locator(GaloisField gf, const uint64_t[::1] e_pos, uint64_t generator = 2):
+cpdef ca.array rs_find_errata_locator(GaloisField gf, const uint64_t[::1] e_pos, uint64_t generator=2):
     '''Compute the erasures/errors/errata locator polynomial from the erasures/errors/errata positions (the positions must be relative to the x coefficient, eg: "hello worldxxxxxxxxx" is tampered to "h_ll_ worldxxxxxxxxx" with xxxxxxxxx being the ecc of length n-k=9, here the string positions are [1, 4], but the coefficients are reversed since the ecc characters are placed as the first coefficients of the polynomial, thus the coefficients of the erased characters are n-1 - [1, 4] = [18, 15] = erasures_loc to be specified as an argument.'''
     assert e_pos is not None
     # See: http://ocw.usu.edu/Electrical_and_Computer_Engineering/Error_Control_Coding/lecture7.pdf and Blahut, Richard E. "Transform techniques for error control codes." IBM Journal of Research and development 23.3 (1979): 299-315. http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.92.600&rep=rep1&type=pdf and also a MatLab implementation here: http://www.mathworks.com/matlabcentral/fileexchange/23567-reed-solomon-errors-and-erasures-decoder/content//RS_E_E_DEC.m
@@ -809,7 +809,7 @@ cpdef ca.array rs_find_error_evaluator(GaloisField gf, const uint64_t[::1] synd,
     r_view[:] = remainder_view[<uint64_t>remainder_view.shape[0] - (nsym + 1):]
     return r
 
-cpdef ca.array rs_find_errors(GaloisField gf, const uint64_t[::1] err_loc, uint64_t nmess, uint64_t generator = 2):
+cpdef ca.array rs_find_errors(GaloisField gf, const uint64_t[::1] err_loc, uint64_t nmess, uint64_t generator=2):
     '''Find the roots (ie, where evaluation = zero) of error polynomial by smart bruteforce trial. This is a faster form of chien search, processing only useful coefficients (the ones in the messages) instead of the whole 2^8 range. Besides the speed boost, this also allows to fix a number of issue: correctly decoding when the last ecc byte is corrupted, and accepting messages of length n > 2^8.'''
     assert err_loc is not None
     # nmess = length of whole codeword (message + ecc symbols)
@@ -828,7 +828,7 @@ cpdef ca.array rs_find_errors(GaloisField gf, const uint64_t[::1] err_loc, uint6
         raise ReedSolomonError('Too many (or few) errors found by Chien Search for the errata locator polynomial!')
     return err_pos
 
-cpdef ca.array rs_forney_syndromes(GaloisField gf, const uint64_t[::1] synd, const uint64_t[::1] pos, uint64_t nmess, uint64_t generator = 2):
+cpdef ca.array rs_forney_syndromes(GaloisField gf, const uint64_t[::1] synd, const uint64_t[::1] pos, uint64_t nmess, uint64_t generator=2):
     # Compute Forney syndromes, which computes a modified syndromes to compute only errors (erasures are trimmed out). Do not confuse this with Forney algorithm, which allows to correct the message based on the location of errors.
     assert synd is not None and pos is not None
     cdef ca.array erase_pos_reversed = ca.clone(uint64_array_template, pos.shape[0], False)  # prepare the coefficient degree positions (instead of the erasures positions)
@@ -855,7 +855,7 @@ cpdef ca.array rs_forney_syndromes(GaloisField gf, const uint64_t[::1] synd, con
 
     return fsynd
 
-cpdef tuple rs_correct_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr = 0, uint64_t generator = 2, const uint64_t[::1] erase_pos = None, bool only_erasures = False):
+cpdef tuple rs_correct_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr=0, uint64_t generator=2, const uint64_t[::1] erase_pos=None, bool only_erasures=False):
     '''Reed-Solomon main decoding function'''
     assert msg_in is not None
     if <uint64_t>msg_in.shape[0] > gf.field_charac:
@@ -905,7 +905,7 @@ cpdef tuple rs_correct_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t 
         # compute the Forney syndromes, which hide the erasures from the original syndrome (so that BM will just have to deal with errors, not erasures)
         fsynd = rs_forney_syndromes(gf, synd, erase_pos, len(msg_out), generator)
         # compute the error locator polynomial using Berlekamp-Massey
-        err_loc = rs_find_error_locator(gf, fsynd, nsym, erase_count = erase_pos.shape[0])
+        err_loc = rs_find_error_locator(gf, fsynd, nsym, erase_count=erase_pos.shape[0])
         # locate the message errors using Chien search (or bruteforce search)
         err_pos = rs_find_errors(gf, inverted(err_loc), len(msg_out), generator)
         if err_pos is None:
@@ -938,7 +938,7 @@ cpdef tuple rs_correct_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t 
     ecc_view[:] = msg_out_view[-nsym:]
     return content, ecc, wrong_pos  # also return the corrected ecc block so that the user can check(), and the position of errors to allow for adaptive bitrate algorithm to check how the number of errors vary
 
-# cpdef tuple rs_correct_msg_nofsynd(const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr = 0, uint64_t generator = 2, const uint64_t[::1] erase_pos = None, bool only_erasures = False):
+# cpdef tuple rs_correct_msg_nofsynd(const uint64_t[::1] msg_in, uint64_t nsym, uint64_t fcr=0, uint64_t generator=2, const uint64_t[::1] erase_pos=None, bool only_erasures=False):
 #     '''Reed-Solomon main decoding function, without using the modified Forney syndromes'''
 #     assert msg_in is not None
 #     if <uint64_t>msg_in.shape[0] > field_charac:
@@ -1029,7 +1029,7 @@ cpdef tuple rs_correct_msg(GaloisField gf, const uint64_t[::1] msg_in, uint64_t 
 #     wrong_pos_view[erase_pos.shape[0]:] = err_pos_view
 #     return content, ecc, wrong_pos  # also return the corrected ecc block so that the user can check(), and the position of errors to allow for adaptive bitrate algorithm to check how the number of errors vary
 
-cpdef bool rs_check(GaloisField gf, const uint64_t[::1] msg, uint64_t nsym, uint64_t fcr = 0, uint64_t generator = 2):
+cpdef bool rs_check(GaloisField gf, const uint64_t[::1] msg, uint64_t nsym, uint64_t fcr=0, uint64_t generator=2):
     '''Returns true if the message + ecc has no error of false otherwise (may not always catch a wrong decoding or a wrong message, particularly if there are too many errors -- above the Singleton bound --, but it usually does)'''
     assert msg is not None
     cdef ca.array synd = rs_calc_syndromes(gf, msg, nsym, fcr, generator)
@@ -1059,7 +1059,7 @@ cdef class RSCodec:
     0x11d)
     '''
 
-    def __init__(self, nsym: int = 10, nsize: int = 255, fcr: int = 0, prim: int = 0x11d, generator: int = 2, c_exp=8, single_gen: bool = True) -> None:
+    def __init__(self, nsym: int=10, nsize: int=255, fcr: int=0, prim: int=0x11d, generator: int=2, c_exp=8, single_gen: bool=True) -> None:
         '''Initialize the Reed-Solomon codec. Note that different parameters change the internal values (the ecc symbols, look-up table values, etc) but not the output result (whether your message can be repaired or not, there is no influence of the parameters).
         nsym : number of ecc symbols (you can repair nsym/2 errors and nsym erasures.
         nsize : maximum length of each chunk. If higher than 255, will use a higher Galois Field, but the algorithm's complexity and computational cost will raise quadratically...
@@ -1109,7 +1109,7 @@ cdef class RSCodec:
             chunk = data[i:i + chunk_size]
             yield chunk
 
-    def encode(self, data: Iterable[int], nsym: Optional[int] = None) -> Annotated[pa.array[int], 'Q']:
+    def encode(self, data: Iterable[int], nsym: Optional[int]=None) -> Annotated[pa.array[int], 'Q']:
         '''Encode a message (ie, add the ecc symbols) using Reed-Solomon, whatever the length of the message because we use chunking
         Optionally, can set nsym to encode with a different number of error correction symbols, but RSCodec must be initialized with single_gen=False first.
         slice_assign=True allows to speed up the loop quite significantly in JIT compilers such as PyPy by preallocating the output bytearray and slice assigning into it, instead of constantly extending an empty bytearray, but this only works in Python 3, not Python 2, hence is disabled by default for retrocompatibility.
@@ -1158,7 +1158,7 @@ cdef class RSCodec:
 
         return enc
 
-    def decode(self, data: Iterable[int], nsym: Optional[int] = None, erase_pos: Optional[Iterable[int]] = None, only_erasures: bool = False) -> tuple[Annotated[pa.array[int], 'Q'], Annotated[pa.array[int], 'Q'], Annotated[pa.array[int], 'Q']]:
+    def decode(self, data: Iterable[int], nsym: Optional[int]=None, erase_pos: Optional[Iterable[int]]=None, only_erasures: bool=False) -> tuple[Annotated[pa.array[int], 'Q'], Annotated[pa.array[int], 'Q'], Annotated[pa.array[int], 'Q']]:
         '''Repair a message, whatever its size is, by using chunking. May return a wrong result if number of errors > nsym because then too many errors to be corrected.
         Note that it returns a couple of vars: the repaired messages, and the repaired messages+ecc (useful for checking).
         Usage: rmes, rmesecc = RSCodec.decode(data).
@@ -1242,7 +1242,7 @@ cdef class RSCodec:
         ca.resize(errata_pos_all, errata_pos_all_view_size)
         return dec, dec_full, errata_pos_all
 
-    def check(self, data: Iterable[int], nsym: Optional[int] = None) -> Annotated[pa.array[int], 'B']:
+    def check(self, data: Iterable[int], nsym: Optional[int]=None) -> Annotated[pa.array[int], 'B']:
         '''Check if a message+ecc stream is not corrupted (or fully repaired). Note: may return a wrong result if number of errors > nsym.'''
 
         cdef uint64_t nsym_c
@@ -1272,7 +1272,7 @@ cdef class RSCodec:
             check.data.as_uchars[i] = rs_check(self.gf, data_array_view[chunk_size * i:chunk_size * (i + 1)], nsym_c, fcr, generator)
         return check
 
-    cpdef tuple maxerrata(self, uint64_t nsym = <uint64_t>(-1), uint64_t errors = <uint64_t>(-1), uint64_t erasures = <uint64_t>(-1), bool verbose = False):
+    cpdef tuple maxerrata(self, uint64_t nsym=<uint64_t>(-1), uint64_t errors=<uint64_t>(-1), uint64_t erasures=<uint64_t>(-1), bool verbose=False):
         '''Return the Singleton Bound for the current codec, which is the max number of errata (errors and erasures) that the codec can decode/correct.
         Beyond the Singleton Bound (too many errors/erasures), the algorithm will try to raise an exception, but it may also not detect any problem with the message and return 0 errors.
         Hence why you should use checksums if your goal is to detect errors (as opposed to correcting them), as checksums have no bounds on the number of errors, the only limitation being the probability of collisions.
