@@ -1,25 +1,43 @@
+from typing import Optional
+
 import numpy as np
-from ...base import BaseExtractor, ExtractError
-from .coder import decode
+from scipy import fft
+
+from ...base import BaseExtractor
+
 
 class DCTExtractor(BaseExtractor):
-    def __init__(self, data_length: int = 8, quantum: float = 1/4096, center: int = None, samples_per_byte: int = 1024) -> None:
-        self.length = data_length
+    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=1 / 4096, iterations: int=3) -> None:
+        self.__wave_length = wave_length
+        self.__data_length = data_length
         self.quantum = quantum
-        self.center = center
-        self.samples_per_byte = samples_per_byte
+        self.iterations = iterations
+
+        bit_num = data_length << 3
+        if data_length << 3 > wave_length:
+            raise ValueError(f'Can not extract {bit_num} bits from {wave_length} frames')
+
+        if center is None:
+            center = wave_length // 2
+        if center - (bit_num - 1) // 2 < 0:
+            center = (bit_num - 1) // 2
+        elif center + bit_num // 2 + 1 >= wave_length:
+            center = wave_length - (bit_num // 2 + 1) - 1
+
+        self.points = list(range(center - (bit_num - 1) // 2, center + bit_num // 2 + 1))
         super().__init__()
 
     def wave_length(self) -> int:
-        return self.length * self.samples_per_byte
+        return self.__wave_length
 
     def data_length(self) -> int:
-        return self.length
+        return self.__data_length
 
     def extract(self, wave: np.ndarray) -> bytes:
-        actual_center = self.center if self.center is not None else wave.shape[0] // 2
+        assert wave.shape[0] == self.wave_length()
 
-        if np.sqrt(np.dot(wave, wave) / wave.shape[0]) <= 256:
-            raise ExtractError("No signal detected in this segment")
+        dct_result = np.array(fft.dct(wave, norm='ortho'))
+        norm = np.linalg.norm(dct_result)
+        dct_result /= norm
 
-        return decode(wave, self.length, self.quantum, actual_center)
+        return np.packbits((dct_result[self.points] // self.quantum).astype(np.int64) % 2).tobytes()
