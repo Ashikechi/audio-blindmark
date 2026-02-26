@@ -80,8 +80,8 @@ but I'm only testing on 2.7 - 3.4.
     array('B', [1])
 
     # To use longer chunks or bigger values than 255 (may be very slow)
-    >> rsc = RSCodec(12, nsize = 4095)  # always use a power of 2 minus 1
-    >> rsc = RSCodec(12, c_exp = 12)  # alternative way to set nsize=4095
+    >> rsc = RSCodec(12, nsize=4095)  # always use a power of 2 minus 1
+    >> rsc = RSCodec(12, c_exp=12)  # alternative way to set nsize=4095
     >> mes = b'a' * (4095-12)
     >> mesecc = rsc.encode(iter(mes))
     >> mesecc[2] = 1
@@ -101,7 +101,7 @@ but I'm only testing on 2.7 - 3.4.
     Pro tip2: by default, you can only encode messages of max length and max symbol value = 256. If you want to encode bigger messages,
     please use the following (where c_exp is the exponent of your Galois Field, eg, 12 = max length 2^12 = 4096):
     >> prim = rs.find_prime_polys(c_exp=12, fast_primes=True, single=True)[0]
-    >> gf = rs.GaloisField(c_exp = 12, prim = prim)
+    >> gf = rs.GaloisField(c_exp=12, prim=prim)
 
     Let's define our RS message and ecc size:
     >> n = 255  # length of total message+ecc
@@ -112,13 +112,13 @@ but I'm only testing on 2.7 - 3.4.
     >> gen = rs.rs_generator_poly_all(gf, n)
 
     Then to encode:
-    >> mesecc = rs.rs_encode_msg(gf, iter(mes), nsym, gen = gen[nsym])
+    >> mesecc = rs.rs_encode_msg(gf, iter(mes), nsym, gen=gen[nsym])
 
     Let's tamper our message:
     >> mesecc[1] = 0
 
     To decode:
-    >> rmes, recc, errata_pos = rs.rs_correct_msg(gf, mesecc, nsym, erase_pos = erase_pos)
+    >> rmes, recc, errata_pos = rs.rs_correct_msg(gf, mesecc, nsym, erase_pos=erase_pos)
     Note that both the message and the ecc are corrected (if possible of course).
     Pro tip: if you know a few erasures positions, you can specify them in a list `erase_pos` to double the repair power. But you can also just specify an empty list.
 
@@ -148,19 +148,19 @@ class ReedSolomonError(Exception):
 def rwh_primes1(n: int) -> Annotated[array.array, 'Q']:
     ''' Returns a list of primes < n '''
     ...
-# def gf_mult_noLUT_slow(x: int, y: int, prim: Optional[int] = None) -> int:  # pylint: disable=C0103
+# def gf_mult_noLUT_slow(x: int, y: int, prim: Optional[int]=None) -> int:  # pylint: disable=C0103
 #     '''Multiplication in Galois Fields on-the-fly without using a precomputed look-up table (and thus it's slower) by using the standard carry-less multiplication + modular reduction using an irreducible prime polynomial.'''
 #     ...
-def gf_mult_noLUT(x: int, y: int, prim: int = 0, field_charac_full: int = 256, carryless: bool = True) -> int:  # pylint: disable=C0103
+def gf_mult_noLUT(x: int, y: int, prim: int=0, field_charac_full: int=256, carryless: bool=True) -> int:  # pylint: disable=C0103
     '''Galois Field integer multiplication on-the-fly without using a look-up table, using Russian Peasant Multiplication algorithm (faster than the standard multiplication + modular reduction). This is still slower than using a look-up table, but is the fastest alternative, and is often used in embedded circuits where storage space is limited (ie, no space for a look-up table).
     If prim is 0 and carryless=False, then the function produces the result for a standard integers multiplication (no carry-less arithmetics nor modular reduction).'''
     ...
-def find_prime_polys(generator: int = 2, c_exp: int = 8, fast_primes: bool = False, single: bool = False) -> Annotated[array.array, 'Q']:
+def find_prime_polys(generator: int=2, c_exp: int=8, fast_primes: bool=False, single: bool=False) -> Annotated[array.array, 'Q']:
     '''Compute the list of prime polynomials for the given generator and galois field characteristic exponent.'''
     ...
 
 class GaloisField:
-    def __init__(self, prim: int = 0x11d, generator: int = 2, c_exp: int = 8) -> None:
+    def __init__(self, prim: int=0x11d, generator: int=2, c_exp: int=8) -> None:
         '''Precompute the logarithm and anti-log tables for faster computation later, using the provided primitive polynomial.
         These tables are used for multiplication/division since addition/substraction are simple XOR operations inside GF of characteristic 2.
         The basic idea is quite simple: since b ** (log_b(x), log_b(y)) == x * y given any number b (the base or generator of the logarithm), then we can use any number b to precompute logarithm and anti-log (exponentiation) tables to use for multiplying two numbers x and y.
@@ -220,16 +220,16 @@ def gf_poly_eval(gf: GaloisField, poly: Annotated[array.array, 'Q'], x: int) -> 
 
 ################### REED-SOLOMON ENCODING ###################
 
-def rs_generator_poly(gf: GaloisField, nsym: int, fcr: int = 0, generator: int = 2) -> Annotated[array.array, 'Q']:
+def rs_generator_poly(gf: GaloisField, nsym: int, fcr: int=0, generator: int=2) -> Annotated[array.array, 'Q']:
     '''Generate an irreducible generator polynomial (necessary to encode a message into Reed-Solomon)'''
     ...
-def rs_generator_poly_all(gf: GaloisField, max_nsym: int, fcr: int = 0, generator: int = 2) -> list[Annotated[array.array, 'Q']]:
+def rs_generator_poly_all(gf: GaloisField, max_nsym: int, fcr: int=0, generator: int=2) -> list[Annotated[array.array, 'Q']]:
     '''Generate all irreducible generator polynomials up to max_nsym (usually you can use n, the length of the message+ecc). Very useful to reduce processing time if you want to encode using variable schemes and nsym rates.'''
     ...
-# def rs_simple_encode_msg(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int = 0, generator: int = 2, gen: Optional[Annotated[array.array, 'Q']] = None) -> Annotated[array.array, 'Q']:
+# def rs_simple_encode_msg(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int=0, generator: int=2, gen: Optional[Annotated[array.array, 'Q']]=None) -> Annotated[array.array, 'Q']:
 #     '''Simple Reed-Solomon encoding (mainly an example for you to understand how it works, because it's slower than the inlined function below)'''
 #     ...
-def rs_encode_msg(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int = 0, generator: int = 2, gen: Optional[Annotated[array.array, 'Q']] = None) -> Annotated[array.array, 'Q']:
+def rs_encode_msg(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int=0, generator: int=2, gen: Optional[Annotated[array.array, 'Q']]=None) -> Annotated[array.array, 'Q']:
     '''Reed-Solomon main encoding function, using polynomial division (Extended Synthetic Division, the fastest algorithm available to my knowledge), better explained at http://research.swtch.com/field'''
     ...
 
@@ -238,35 +238,35 @@ def rs_encode_msg(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], nsym: in
 def inverted(msg: Annotated[array.array, 'Q']) -> Annotated[array.array, 'Q']:
     '''Implements msg[::-1] explicitly to make the library compatible with MicroPython which does not support stepped slices.'''
     ...
-def rs_calc_syndromes(gf: GaloisField, msg: Annotated[array.array, 'Q'], nsym: int, fcr: int = 0, generator: int = 2) -> Annotated[array.array, 'Q']:
+def rs_calc_syndromes(gf: GaloisField, msg: Annotated[array.array, 'Q'], nsym: int, fcr: int=0, generator: int=2) -> Annotated[array.array, 'Q']:
     '''Given the received codeword msg and the number of error correcting symbols (nsym), computes the syndromes polynomial.
     Mathematically, it's essentially equivalent to a Fourrier Transform (Chien search being the inverse).
     '''
     ...
-def rs_correct_errata(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], synd: Annotated[array.array, 'Q'], err_pos: Annotated[array.array, 'Q'], fcr: int = 0, generator: int = 2) -> Annotated[array.array, 'Q']: # err_pos is a list of the positions of the errors/erasures/errata
+def rs_correct_errata(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], synd: Annotated[array.array, 'Q'], err_pos: Annotated[array.array, 'Q'], fcr: int=0, generator: int=2) -> Annotated[array.array, 'Q']: # err_pos is a list of the positions of the errors/erasures/errata
     '''Forney algorithm, computes the values (error magnitude) to correct the input message.'''
     ...
-def rs_find_error_locator(gf: GaloisField, synd: Annotated[array.array, 'Q'], nsym: int, erase_loc: Optional[Annotated[array.array, 'Q']] = None, erase_count: int = 0) -> Annotated[array.array, 'Q']:
+def rs_find_error_locator(gf: GaloisField, synd: Annotated[array.array, 'Q'], nsym: int, erase_loc: Optional[Annotated[array.array, 'Q']]=None, erase_count: int=0) -> Annotated[array.array, 'Q']:
     '''Find error/errata locator and evaluator polynomials with Berlekamp-Massey algorithm'''
     ...
-def rs_find_errata_locator(gf: GaloisField, e_pos: Annotated[array.array, 'Q'], generator: int = 2) -> Annotated[array.array, 'Q']:
+def rs_find_errata_locator(gf: GaloisField, e_pos: Annotated[array.array, 'Q'], generator: int=2) -> Annotated[array.array, 'Q']:
     '''Compute the erasures/errors/errata locator polynomial from the erasures/errors/errata positions (the positions must be relative to the x coefficient, eg: "hello worldxxxxxxxxx" is tampered to "h_ll_ worldxxxxxxxxx" with xxxxxxxxx being the ecc of length n-k=9, here the string positions are [1, 4], but the coefficients are reversed since the ecc characters are placed as the first coefficients of the polynomial, thus the coefficients of the erased characters are n-1 - [1, 4] = [18, 15] = erasures_loc to be specified as an argument.'''
     ...
 def rs_find_error_evaluator(gf: GaloisField, synd: Annotated[array.array, 'Q'], err_loc: Annotated[array.array, 'Q'], nsym: int) -> Annotated[array.array, 'Q']:
     '''Compute the error (or erasures if you supply sigma=erasures locator polynomial, or errata) evaluator polynomial Omega from the syndrome and the error/erasures/errata locator Sigma. Omega is already computed at the same time as Sigma inside the Berlekamp-Massey implemented above, but in case you modify Sigma, you can recompute Omega afterwards using this method, or just ensure that Omega computed by BM is correct given Sigma.'''
     ...
-def rs_find_errors(gf: GaloisField, err_loc: Annotated[array.array, 'Q'], nmess: int, generator: int = 2) -> Annotated[array.array, 'Q']:
+def rs_find_errors(gf: GaloisField, err_loc: Annotated[array.array, 'Q'], nmess: int, generator: int=2) -> Annotated[array.array, 'Q']:
     '''Find the roots (ie, where evaluation = zero) of error polynomial by smart bruteforce trial. This is a faster form of chien search, processing only useful coefficients (the ones in the messages) instead of the whole 2^8 range. Besides the speed boost, this also allows to fix a number of issue: correctly decoding when the last ecc byte is corrupted, and accepting messages of length n > 2^8.'''
     ...
-def rs_forney_syndromes(gf: GaloisField, synd: Annotated[array.array, 'Q'], pos: Annotated[array.array, 'Q'], nmess: int, generator: int = 2) -> Annotated[array.array, 'Q']:
+def rs_forney_syndromes(gf: GaloisField, synd: Annotated[array.array, 'Q'], pos: Annotated[array.array, 'Q'], nmess: int, generator: int=2) -> Annotated[array.array, 'Q']:
     ...
-def rs_correct_msg(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int = 0, generator: int = 2, erase_pos: Optional[Annotated[array.array, 'Q']] = None, only_erasures: bool = False) -> tuple[Annotated[array.array, 'Q'], Annotated[array.array, 'Q'], Annotated[array.array, 'Q']]:
+def rs_correct_msg(gf: GaloisField, msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int=0, generator: int=2, erase_pos: Optional[Annotated[array.array, 'Q']]=None, only_erasures: bool=False) -> tuple[Annotated[array.array, 'Q'], Annotated[array.array, 'Q'], Annotated[array.array, 'Q']]:
     '''Reed-Solomon main decoding function'''
     ...
-# def rs_correct_msg_nofsynd(msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int = 0, generator: int = 2, erase_pos: Optional[Annotated[array.array, 'Q']] = None, only_erasures: bool = False) -> tuple[Annotated[array.array, 'Q'], Annotated[array.array, 'Q'], Annotated[array.array, 'Q']]:
+# def rs_correct_msg_nofsynd(msg_in: Annotated[array.array, 'Q'], nsym: int, fcr: int=0, generator: int=2, erase_pos: Optional[Annotated[array.array, 'Q']]=None, only_erasures: bool=False) -> tuple[Annotated[array.array, 'Q'], Annotated[array.array, 'Q'], Annotated[array.array, 'Q']]:
 #     '''Reed-Solomon main decoding function, without using the modified Forney syndromes'''
 #     ...
-def rs_check(gf: GaloisField, msg: Annotated[array.array, 'Q'], nsym: int, fcr: int = 0, generator: int = 2) -> bool:
+def rs_check(gf: GaloisField, msg: Annotated[array.array, 'Q'], nsym: int, fcr: int=0, generator: int=2) -> bool:
     '''Returns true if the message + ecc has no error of false otherwise (may not always catch a wrong decoding or a wrong message, particularly if there are too many errors -- above the Singleton bound --, but it usually does)'''
     ...
 
@@ -291,7 +291,7 @@ class RSCodec:
     0x11d)
     '''
 
-    def __init__(self, nsym: int = 10, nsize: int = 255, fcr: int = 0, prim: int = 0x11d, generator: int = 2, c_exp=8, single_gen: bool = True) -> None:
+    def __init__(self, nsym: int=10, nsize: int=255, fcr: int=0, prim: int=0x11d, generator: int=2, c_exp=8, single_gen: bool=True) -> None:
         '''Initialize the Reed-Solomon codec. Note that different parameters change the internal values (the ecc symbols, look-up table values, etc) but not the output result (whether your message can be repaired or not, there is no influence of the parameters).
         nsym : number of ecc symbols (you can repair nsym/2 errors and nsym erasures.
         nsize : maximum length of each chunk. If higher than 255, will use a higher Galois Field, but the algorithm's complexity and computational cost will raise quadratically...
@@ -302,23 +302,23 @@ class RSCodec:
         '''Split a long message into chunks
         DEPRECATED: inlined alternate form so that we can preallocate arrays and hence get faster results with JIT compilers such as PyPy.'''
         ...
-    def encode(self, data: Iterable[int], nsym: Optional[int] = None) -> Annotated[array.array, 'Q']:
+    def encode(self, data: Iterable[int], nsym: Optional[int]=None) -> Annotated[array.array, 'Q']:
         '''Encode a message (ie, add the ecc symbols) using Reed-Solomon, whatever the length of the message because we use chunking
         Optionally, can set nsym to encode with a different number of error correction symbols, but RSCodec must be initialized with single_gen=False first.
         slice_assign=True allows to speed up the loop quite significantly in JIT compilers such as PyPy by preallocating the output bytearray and slice assigning into it, instead of constantly extending an empty bytearray, but this only works in Python 3, not Python 2, hence is disabled by default for retrocompatibility.
         '''
         ...
-    def decode(self, data: Iterable[int], nsym: Optional[int] = None, erase_pos: Optional[Iterable[int]] = None, only_erasures: bool = False) -> tuple[Annotated[array.array, 'Q'], Annotated[array.array, 'Q'], Annotated[array.array, 'Q']]:
+    def decode(self, data: Iterable[int], nsym: Optional[int]=None, erase_pos: Optional[Iterable[int]]=None, only_erasures: bool=False) -> tuple[Annotated[array.array, 'Q'], Annotated[array.array, 'Q'], Annotated[array.array, 'Q']]:
         '''Repair a message, whatever its size is, by using chunking. May return a wrong result if number of errors > nsym because then too many errors to be corrected.
         Note that it returns a couple of vars: the repaired messages, and the repaired messages+ecc (useful for checking).
         Usage: rmes, rmesecc = RSCodec.decode(data).
         Optionally: can specify nsym to decode messages of different parameters, erase_pos with a list of erasures positions to double the number of erasures that can be corrected compared to unlocalized errors, only_erasures boolean to specify if we should only look for erasures, which speeds up and doubles the total correction power.
         '''
         ...
-    def check(self, data: Iterable[int], nsym: Optional[int] = None) -> Annotated[array.array, 'B']:
+    def check(self, data: Iterable[int], nsym: Optional[int]=None) -> Annotated[array.array, 'B']:
         '''Check if a message+ecc stream is not corrupted (or fully repaired). Note: may return a wrong result if number of errors > nsym.'''
         ...
-    def maxerrata(self, nsym: Optional[int] = None, errors: Optional[int] = None, erasures: Optional[int] = None, verbose: bool = False) -> tuple[int, int]:
+    def maxerrata(self, nsym: Optional[int]=None, errors: Optional[int]=None, erasures: Optional[int]=None, verbose: bool=False) -> tuple[int, int]:
         '''Return the Singleton Bound for the current codec, which is the max number of errata (errors and erasures) that the codec can decode/correct.
         Beyond the Singleton Bound (too many errors/erasures), the algorithm will try to raise an exception, but it may also not detect any problem with the message and return 0 errors.
         Hence why you should use checksums if your goal is to detect errors (as opposed to correcting them), as checksums have no bounds on the number of errors, the only limitation being the probability of collisions.

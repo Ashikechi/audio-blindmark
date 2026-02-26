@@ -21,7 +21,7 @@ class ImpossibleOutputLengthError(Exception):
     pass
 
 class Encoder:
-    def __init__(self, password: bytes, ecc_length: int, digest_length = 8, salt_length = 8) -> None:
+    def __init__(self, password: bytes, ecc_length: int, digest_length: int=8, salt_length: int=8) -> None:
         self.password = password
         self.ecc_length = ecc_length
         self.digest_length = digest_length
@@ -30,8 +30,8 @@ class Encoder:
 
         self.rsc = RSCodec(ecc_length)
 
-        key_over = PBKDF2(base64.b64encode(password).decode(), b'', 32, DERIVATION_EPOCH, hmac_hash_module = DERIVATION_HASH)
-        cipher_over = ChaCha20.new(key = key_over, nonce = b'\x00' * 8)
+        key_over = PBKDF2(base64.b64encode(password).decode(), b'', 32, DERIVATION_EPOCH, hmac_hash_module=DERIVATION_HASH)
+        cipher_over = ChaCha20.new(key=key_over, nonce=b'\x00' * 8)
         self.key_stream = cipher_over.encrypt(b'\x00' * MAX_DATA_LENGTH)
 
         self.key_cache: Optional[tuple[bytes, bytes]] = None
@@ -46,7 +46,7 @@ class Encoder:
             salt = self.key_cache[0]
         else:
             salt = get_random_bytes(self.salt_length)
-            self.key_cache = (salt, PBKDF2(base64.b64encode(self.password).decode(), salt, 32, DERIVATION_EPOCH, hmac_hash_module = DERIVATION_HASH))
+            self.key_cache = (salt, PBKDF2(base64.b64encode(self.password).decode(), salt, 32, DERIVATION_EPOCH, hmac_hash_module=DERIVATION_HASH))
 
         nonce = get_random_bytes(self.nonce_length)
 
@@ -62,7 +62,7 @@ class DecodeError(Exception):
     pass
 
 class Decoder:
-    def __init__(self, password: bytes, ecc_length: int, digest_length = 8, salt_length = 8) -> None:
+    def __init__(self, password: bytes, ecc_length: int, digest_length: int=8, salt_length: int=8) -> None:
         self.password = password
         self.ecc_length = ecc_length
         self.digest_length = digest_length
@@ -71,8 +71,8 @@ class Decoder:
 
         self.rsc = RSCodec(ecc_length)
 
-        key_over = PBKDF2(base64.b64encode(password).decode(), b'', 32, DERIVATION_EPOCH, hmac_hash_module = DERIVATION_HASH)
-        cipher_over = ChaCha20.new(key = key_over, nonce = b'\x00' * 8)
+        key_over = PBKDF2(base64.b64encode(password).decode(), b'', 32, DERIVATION_EPOCH, hmac_hash_module=DERIVATION_HASH)
+        cipher_over = ChaCha20.new(key=key_over, nonce=b'\x00' * 8)
         self.key_stream = cipher_over.encrypt(b'\x00' * MAX_DATA_LENGTH)
 
         self.key_cache: dict[bytes, bytes] = {}
@@ -105,9 +105,9 @@ class Decoder:
         if salt in self.key_cache:
             key = self.key_cache[salt]
         else:
-            self.key_cache[salt] = key = PBKDF2(base64.b64encode(self.password).decode(), salt, 32, DERIVATION_EPOCH, hmac_hash_module = DERIVATION_HASH)
+            self.key_cache[salt] = key = PBKDF2(base64.b64encode(self.password).decode(), salt, 32, DERIVATION_EPOCH, hmac_hash_module=DERIVATION_HASH)
 
-        cipher = ChaCha20.new(key = key, nonce = nonce)
+        cipher = ChaCha20.new(key=key, nonce=nonce)
         text = cipher.decrypt(cipher_text)
         try:
             return (int.from_bytes(text[:4], 'little'), text[4:])

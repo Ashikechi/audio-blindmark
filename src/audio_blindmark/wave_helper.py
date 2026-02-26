@@ -12,7 +12,7 @@ class WaveReadHelper:
     def read(self, frame_num: int) -> tuple[list[np.ndarray[tuple[int], np.dtype[np.float64]]], int]:
         data = self.f.readframes(frame_num)
         frame_num = len(data) // (self.channel_num * self.width)
-        channels = [*np.array(np.frombuffer(data, f'<i{self.width}').astype(np.float64).reshape([-1, self.channel_num]).T, order = 'C')]
+        channels = [*np.array(np.frombuffer(data, f'<i{self.width}').astype(np.float64).reshape([-1, self.channel_num]).T, order='C')]
         return channels, frame_num
 
 class WaveWriteHelper:
@@ -29,5 +29,5 @@ class WaveWriteHelper:
         for each in channels:
             assert each.shape[0] == frame_num
 
-        int_stack = np.stack(channels, axis = -1).reshape(-1).astype(f'<i{self.width}')
+        int_stack = np.stack(channels, axis=-1).reshape(-1).astype(f'<i{self.width}')
         self.f.writeframes(int_stack.tobytes())
