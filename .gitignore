@@ -227,3 +227,6 @@ prof/
 
 # Assets
 *.wav
+
+# Reports
+reports/
