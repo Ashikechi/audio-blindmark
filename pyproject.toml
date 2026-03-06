@@ -34,3 +34,5 @@ isort = "^7.0.0"
 types-setuptools = "^82.0.0.20260210"
 pylint = "^4.0.4"
 scipy-stubs = "^1.17.1.0"
+aquatk = {git = "https://github.com/ashvala/AQUA-tk.git"}
+matplotlib = "^3.10.8"
