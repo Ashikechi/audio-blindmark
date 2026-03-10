@@ -8,25 +8,24 @@ from ...base import BaseEmbedder, EmbedError
 
 
 class FFTEmbedder(BaseEmbedder):
-    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=0.2, min_average_energy: float=256, iterations: int=3) -> None:
+    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=0.8, min_average_energy: float=256) -> None:
         self.__wave_length = wave_length
         self.__data_length = data_length
         self.quantum = quantum
         self.min_average_energy = min_average_energy
-        self.iterations = iterations
 
-        max_freq_idx = wave_length // 2
         bit_num = data_length << 3
+        max_bit_num = (wave_length - 1) // 2
 
-        if bit_num > max_freq_idx - 2:
+        if bit_num > max_bit_num:
             raise ValueError(f'Can not embed {bit_num} bits in {wave_length} frames')
 
         if center is None:
-            center = max_freq_idx // 2
+            center = (max_bit_num + 1) // 2
         if center - (bit_num - 1) // 2 < 1:
             center = (bit_num - 1) // 2 + 1
-        elif center + bit_num // 2 + 1 >= max_freq_idx:
-            center = max_freq_idx - (bit_num // 2 + 1) - 1
+        elif center + bit_num // 2 > max_bit_num:
+            center = max_bit_num - (bit_num // 2)
 
         self.points = list(range(center - (bit_num - 1) // 2, center + bit_num // 2 + 1))
         super().__init__()
@@ -43,29 +42,22 @@ class FFTEmbedder(BaseEmbedder):
         if np.sqrt(np.dot(wave, wave) / wave.shape[0]) <= self.min_average_energy:
             raise EmbedError("Segment energy too low")
 
-        bits = bitarray()
-        bits.frombytes(data)
+        bits = bitarray(data)
 
-        current_wave = wave.copy()
+        fft_result = fft.rfft(wave, norm='ortho')
 
-        for _ in range(self.iterations):
-            fft_result = fft.rfft(wave)
-            magnitude = np.abs(fft_result)
-            phase = np.angle(fft_result)
+        for pos, bit in zip(self.points, bits):
+            magnitude = np.abs(fft_result[pos])
+            angle_quantized = np.angle(fft_result[pos]) // (self.quantum / 2)
 
-            for pos, bit in zip(self.points, bits):
-                p = phase[pos] + np.pi
-                q = p // self.quantum
-
-                if q % 2 == bit:
-                    new_p = (q + 0.5) * self.quantum
+            if angle_quantized % 4 // 2 == bit:
+                angle_quantized = angle_quantized // 2 * 2 + 1
+            else:
+                if angle_quantized % 2 == 0:
+                    angle_quantized -= 1
                 else:
-                    new_q = q + 1 if (p % self.quantum) > (self.quantum / 2) else q - 1
-                    new_p = (new_q + 0.5) * self.quantum
+                    angle_quantized += 2
 
-                phase[pos] = (new_p % (2 * np.pi)) - np.pi
+            fft_result[pos] = magnitude * np.exp(1j * angle_quantized * (self.quantum / 2))
 
-            new_fft_result = magnitude * np.exp(1j * phase)
-            current_wave = fft.irfft(new_fft_result, n=self.__wave_length)
-
-        return current_wave
+        return fft.irfft(fft_result, wave.shape[0], norm='ortho')

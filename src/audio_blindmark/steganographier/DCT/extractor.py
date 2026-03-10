@@ -18,11 +18,11 @@ class DCTExtractor(BaseExtractor):
             raise ValueError(f'Can not extract {bit_num} bits from {wave_length} frames')
 
         if center is None:
-            center = wave_length // 2
+            center = (wave_length - 1) // 2
         if center - (bit_num - 1) // 2 < 0:
             center = (bit_num - 1) // 2
-        elif center + bit_num // 2 + 1 >= wave_length:
-            center = wave_length - (bit_num // 2 + 1) - 1
+        elif center + bit_num // 2 >= wave_length:
+            center = wave_length - (bit_num // 2) - 1
 
         self.points = list(range(center - (bit_num - 1) // 2, center + bit_num // 2 + 1))
         super().__init__()
@@ -36,7 +36,7 @@ class DCTExtractor(BaseExtractor):
     def extract(self, wave: np.ndarray) -> bytes:
         assert wave.shape[0] == self.wave_length()
 
-        dct_result = np.array(fft.dct(wave, norm='ortho'))
+        dct_result = fft.dct(wave, norm='ortho')
         norm = np.linalg.norm(dct_result)
         dct_result /= norm
 

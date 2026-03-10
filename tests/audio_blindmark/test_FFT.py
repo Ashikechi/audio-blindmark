@@ -1,5 +1,6 @@
 # pylint: disable=C0103
 import wave
+
 import pytest
 from aquatk.metrics.PEAQ import PEAQ
 from pytest_benchmark.fixture import BenchmarkFixture
@@ -14,9 +15,6 @@ DATA = b'Saa, kanaete yo! Inkyubeitaa!' * 4
 WAVE_LENGTH = 4096
 DATA_LENGTH = 64
 
-TEST_QUANTUM = 1.0
-TEST_CENTER = 2048
-
 MEDIA_DIR = 'assets/audio/'
 REF_AUDIO = MEDIA_DIR + 'test_short.wav'
 OUTPUT_AUDIO = MEDIA_DIR + 'output_FFT.wav'
@@ -24,14 +22,14 @@ PEAQ_REPORT_FILE = 'reports/FFT.txt'
 
 def test_FFT():
     seed(42)
-    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum = TEST_QUANTUM, center = TEST_CENTER)
+    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
     encoder = Encoder(KEY, 2)
     with wave.open(REF_AUDIO, 'r') as raw_audio:
         with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
             output_audio.setparams(raw_audio.getparams())
             embed(raw_audio, DATA, output_audio, encoder, embedder)
 
-    extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum = TEST_QUANTUM, center = TEST_CENTER)
+    extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
     decoder = Decoder(KEY, 2)
     with wave.open(OUTPUT_AUDIO, 'r') as audio:
         assert extract(audio, decoder, extractor) == DATA
@@ -45,7 +43,7 @@ def test_FFT():
 def test_benchmark_FFT_embed(benchmark: BenchmarkFixture):
     def do():
         seed(42)
-        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum = TEST_QUANTUM, center = TEST_CENTER)
+        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
         encoder = Encoder(KEY, 2)
         with wave.open(REF_AUDIO, 'r') as raw_audio:
             with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
@@ -56,13 +54,13 @@ def test_benchmark_FFT_embed(benchmark: BenchmarkFixture):
 @pytest.mark.benchmark(group='FFT-extract')
 def test_benchmark_FFT_extract(benchmark: BenchmarkFixture):
     def do():
-        extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum = TEST_QUANTUM, center = TEST_CENTER)
+        extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
         decoder = Decoder(KEY, 2)
         with wave.open(OUTPUT_AUDIO, 'r') as audio:
             extract(audio, decoder, extractor)
 
     seed(42)
-    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum = TEST_QUANTUM, center = TEST_CENTER)
+    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
     encoder = Encoder(KEY, 2)
     with wave.open(REF_AUDIO, 'r') as raw_audio:
         with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
