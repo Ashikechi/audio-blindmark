@@ -7,10 +7,10 @@ from ...base import BaseExtractor
 
 
 class FFTExtractor(BaseExtractor):
-    def __init__(self, wave_length: int = 4096, data_length: int = 64, center: Optional[int] = None, quantum: float = 0.8) -> None:
+    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=0.2) -> None:
         self.__wave_length = wave_length
         self.__data_length = data_length
-        self.quantum = quantum
+        self.quantum = np.pi / np.ceil(np.pi / quantum)
 
         bit_num = data_length << 3
         max_bit_num = (wave_length - 1) // 2

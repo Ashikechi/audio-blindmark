@@ -8,10 +8,10 @@ from ...base import BaseEmbedder, EmbedError
 
 
 class FFTEmbedder(BaseEmbedder):
-    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=0.8, min_average_energy: float=256) -> None:
+    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=0.2, min_average_energy: float=256) -> None:
         self.__wave_length = wave_length
         self.__data_length = data_length
-        self.quantum = quantum
+        self.quantum = np.pi / np.ceil(np.pi / quantum)
         self.min_average_energy = min_average_energy
 
         bit_num = data_length << 3
