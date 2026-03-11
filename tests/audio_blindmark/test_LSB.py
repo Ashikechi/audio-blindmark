@@ -16,7 +16,7 @@ DATA_LENGTH = 64
 
 MEDIA_DIR = 'assets/audio/'
 
-REF_AUDIO = MEDIA_DIR + 'test_short.wav'
+REF_AUDIO = MEDIA_DIR + 'sample.wav'
 OUTPUT_AUDIO = MEDIA_DIR + 'output_LSB.wav'
 
 PEAQ_REPORT_FILE = 'reports/LSB.txt'

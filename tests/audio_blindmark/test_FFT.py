@@ -16,7 +16,7 @@ WAVE_LENGTH = 4096
 DATA_LENGTH = 64
 
 MEDIA_DIR = 'assets/audio/'
-REF_AUDIO = MEDIA_DIR + 'test_short.wav'
+REF_AUDIO = MEDIA_DIR + 'sample.wav'
 OUTPUT_AUDIO = MEDIA_DIR + 'output_FFT.wav'
 PEAQ_REPORT_FILE = 'reports/FFT.txt'
 
