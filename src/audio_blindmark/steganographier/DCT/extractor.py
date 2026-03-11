@@ -38,6 +38,7 @@ class DCTExtractor(BaseExtractor):
 
         dct_result = fft.dct(wave, norm='ortho')
         norm = np.linalg.norm(dct_result)
-        dct_result /= norm
+        if norm != 0.0:
+            dct_result /= norm
 
         return np.packbits((dct_result[self.points] // self.quantum).astype(np.int64) % 2).tobytes()
