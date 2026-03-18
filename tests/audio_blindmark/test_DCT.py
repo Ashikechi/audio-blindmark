@@ -9,11 +9,14 @@ from audio_blindmark import *  # pylint: disable=W0401
 from audio_blindmark.steganographier.DCT import DCTEmbedder, DCTExtractor
 from audio_blindmark.utils.random import seed
 
+from .noise import add_compression_noise
+
 KEY = b'Ema'
+ECC_LENGTH = 64
 DATA = b'Sakuraba Ema daisuki' * 4
 
 WAVE_LENGTH = 4096
-DATA_LENGTH = 64
+DATA_LENGTH = 128
 
 MEDIA_DIR = 'assets/audio/'
 
@@ -22,17 +25,20 @@ OUTPUT_AUDIO = MEDIA_DIR + 'output_DCT.wav'
 
 PEAQ_REPORT_FILE = 'reports/DCT.txt'
 
+OUTPUT_AUDIO_MP3 = MEDIA_DIR + 'output_DCT.mp3.wav'
+OUTPUT_AUDIO_OGG = MEDIA_DIR + 'output_DCT.ogg.wav'
+
 def test_DCT():
     seed(42)
     embedder = DCTEmbedder(WAVE_LENGTH, DATA_LENGTH)
-    encoder = Encoder(KEY, 2)
+    encoder = Encoder(KEY, ECC_LENGTH)
     with wave.open(REF_AUDIO, 'r') as raw_audio:
         with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
             output_audio.setparams(raw_audio.getparams())
             embed(raw_audio, DATA, output_audio, encoder, embedder)
 
     extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH)
-    decoder = Decoder(KEY, 2)
+    decoder = Decoder(KEY, ECC_LENGTH)
     with wave.open(OUTPUT_AUDIO, 'r') as audio:
         assert extract(audio, decoder, extractor) == DATA
 
@@ -41,12 +47,49 @@ def test_DCT():
     with open(PEAQ_REPORT_FILE, 'w', encoding='utf-8') as f:
         f.write(str(result))
 
+def test_DCT_with_mp3():
+    quantum = 1 / 16
+
+    seed(42)
+    embedder = DCTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
+    encoder = Encoder(KEY, ECC_LENGTH)
+    with wave.open(REF_AUDIO, 'r') as raw_audio:
+        with wave.open(OUTPUT_AUDIO_MP3, 'w') as output_audio:
+            output_audio.setparams(raw_audio.getparams())
+            embed(raw_audio, DATA, output_audio, encoder, embedder)
+
+    add_compression_noise(OUTPUT_AUDIO_MP3, OUTPUT_AUDIO_MP3, 'mp3')
+
+    extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
+    decoder = Decoder(KEY, ECC_LENGTH)
+    with wave.open(OUTPUT_AUDIO_MP3, 'r') as audio:
+        assert extract(audio, decoder, extractor) == DATA
+
+@pytest.mark.skip
+def test_DCT_with_ogg():
+    quantum = 1 / 16
+
+    seed(42)
+    embedder = DCTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
+    encoder = Encoder(KEY, ECC_LENGTH)
+    with wave.open(REF_AUDIO, 'r') as raw_audio:
+        with wave.open(OUTPUT_AUDIO_OGG, 'w') as output_audio:
+            output_audio.setparams(raw_audio.getparams())
+            embed(raw_audio, DATA, output_audio, encoder, embedder)
+
+    add_compression_noise(OUTPUT_AUDIO_OGG, OUTPUT_AUDIO_OGG, 'ogg')
+
+    extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
+    decoder = Decoder(KEY, ECC_LENGTH)
+    with wave.open(OUTPUT_AUDIO_OGG, 'r') as audio:
+        assert extract(audio, decoder, extractor) == DATA
+
 @pytest.mark.benchmark(group='DCT-embed')
 def test_benchmark_DCT_embed(benchmark: BenchmarkFixture):
     def do():
         seed(42)
         embedder = DCTEmbedder(WAVE_LENGTH, DATA_LENGTH)
-        encoder = Encoder(KEY, 2)
+        encoder = Encoder(KEY, ECC_LENGTH)
         with wave.open(REF_AUDIO, 'r') as raw_audio:
             with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
                 output_audio.setparams(raw_audio.getparams())
@@ -57,13 +100,13 @@ def test_benchmark_DCT_embed(benchmark: BenchmarkFixture):
 def test_benchmark_DCT_extract(benchmark: BenchmarkFixture):
     def do():
         extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH)
-        decoder = Decoder(KEY, 2)
+        decoder = Decoder(KEY, ECC_LENGTH)
         with wave.open(OUTPUT_AUDIO, 'r') as audio:
             extract(audio, decoder, extractor)
 
     seed(42)
     embedder = DCTEmbedder(WAVE_LENGTH, DATA_LENGTH)
-    encoder = Encoder(KEY, 2)
+    encoder = Encoder(KEY, ECC_LENGTH)
     with wave.open(REF_AUDIO, 'r') as raw_audio:
         with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
             output_audio.setparams(raw_audio.getparams())
