@@ -36,3 +36,4 @@ pylint = "^4.0.4"
 scipy-stubs = "^1.17.1.0"
 aquatk = {git = "https://github.com/ashvala/AQUA-tk.git"}
 matplotlib = "^3.10.8"
+pydub = "^0.25.1"
