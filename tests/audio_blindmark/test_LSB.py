@@ -9,10 +9,10 @@ from audio_blindmark import *  # pylint: disable=W0401
 from audio_blindmark.steganographier.LSB import LSBEmbedder, LSBExtractor
 from audio_blindmark.utils.random import seed
 
-from .noise import add_compression_noise
+from .utils import add_compression_noise, zoom
 
 KEY = b'Kei'
-ECC_LENGTH = 64
+ECC_LENGTH = 2
 DATA = b'Aris -- Princesses of Unnamed Gods' * 32
 
 DATA_LENGTH = 128
@@ -26,6 +26,7 @@ PEAQ_REPORT_FILE = 'reports/LSB.txt'
 
 OUTPUT_AUDIO_MP3 = MEDIA_DIR + 'output_LSB.mp3.wav'
 OUTPUT_AUDIO_OGG = MEDIA_DIR + 'output_LSB.ogg.wav'
+OUTPUT_AUDIO_ZOOM = MEDIA_DIR + 'output_LSB.zoom.wav'
 
 def test_LSB():
     seed(42)
@@ -78,6 +79,23 @@ def test_LSB_with_ogg():
     extractor = LSBExtractor(DATA_LENGTH)
     decoder = Decoder(KEY, ECC_LENGTH)
     with wave.open(OUTPUT_AUDIO_OGG, 'r') as audio:
+        assert extract(audio, decoder, extractor) == DATA
+
+@pytest.mark.skip
+def test_DCT_with_zoom():
+    seed(42)
+    embedder = LSBEmbedder(DATA_LENGTH)
+    encoder = Encoder(KEY, ECC_LENGTH)
+    with wave.open(REF_AUDIO, 'r') as raw_audio:
+        with wave.open(OUTPUT_AUDIO_ZOOM, 'w') as output_audio:
+            output_audio.setparams(raw_audio.getparams())
+            embed(raw_audio, DATA, output_audio, encoder, embedder)
+
+    zoom(OUTPUT_AUDIO_ZOOM, OUTPUT_AUDIO_ZOOM, 1.2)
+
+    extractor = LSBExtractor(DATA_LENGTH)
+    decoder = Decoder(KEY, ECC_LENGTH)
+    with wave.open(OUTPUT_AUDIO_ZOOM, 'r') as audio:
         assert extract(audio, decoder, extractor) == DATA
 
 @pytest.mark.benchmark(group='LSB-embed')
