@@ -9,10 +9,10 @@ from audio_blindmark import *  # pylint: disable=W0401
 from audio_blindmark.steganographier.FFT import FFTEmbedder, FFTExtractor
 from audio_blindmark.utils.random import seed
 
-from .noise import add_compression_noise
+from .utils import add_compression_noise, zoom
 
 KEY = b'Madoka'
-ECC_LENGTH = 64
+ECC_LENGTH = 2
 DATA = b'Saa, kanaete yo! Inkyubeitaa!' * 4
 
 WAVE_LENGTH = 4096
@@ -27,6 +27,7 @@ PEAQ_REPORT_FILE = 'reports/FFT.txt'
 
 OUTPUT_AUDIO_MP3 = MEDIA_DIR + 'output_FFT.mp3.wav'
 OUTPUT_AUDIO_OGG = MEDIA_DIR + 'output_FFT.ogg.wav'
+OUTPUT_AUDIO_ZOOM = MEDIA_DIR + 'output_FFT.zoom.wav'
 
 def test_FFT():
     seed(42)
@@ -83,6 +84,22 @@ def test_FFT_with_ogg():
     extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
     decoder = Decoder(KEY, ECC_LENGTH)
     with wave.open(OUTPUT_AUDIO_OGG, 'r') as audio:
+        assert extract(audio, decoder, extractor) == DATA
+
+def test_DCT_with_zoom():
+    seed(42)
+    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
+    encoder = Encoder(KEY, ECC_LENGTH)
+    with wave.open(REF_AUDIO, 'r') as raw_audio:
+        with wave.open(OUTPUT_AUDIO_ZOOM, 'w') as output_audio:
+            output_audio.setparams(raw_audio.getparams())
+            embed(raw_audio, DATA, output_audio, encoder, embedder)
+
+    zoom(OUTPUT_AUDIO_ZOOM, OUTPUT_AUDIO_ZOOM, 1.2)
+
+    extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
+    decoder = Decoder(KEY, ECC_LENGTH)
+    with wave.open(OUTPUT_AUDIO_ZOOM, 'r') as audio:
         assert extract(audio, decoder, extractor) == DATA
 
 @pytest.mark.benchmark(group='FFT-embed')
