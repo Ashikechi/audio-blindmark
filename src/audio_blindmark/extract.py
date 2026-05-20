@@ -1,16 +1,18 @@
-import wave
+import numpy as np
 
 from . import base
 from .coder import DecodeError, Decoder
-from .wave_helper import WaveReadHelper
 
 
 class ExtractError(Exception):
     pass
 
-def extract(audio: wave.Wave_read, decoder: Decoder, extractor: base.BaseExtractor) -> bytes:
-    read_helper = WaveReadHelper(audio)
-    channels, frame_num = read_helper.read(-1)
+def extract(channels: list[np.ndarray[tuple[int], np.dtype[np.float64]]], decoder: Decoder, extractor: base.BaseExtractor) -> bytes:
+    assert len(channels) > 0
+    frame_num = channels[0].shape[0]
+    for each in channels:
+        assert each.shape[0] == frame_num
+
     packets = {}
 
     wave_length = extractor.wave_length()

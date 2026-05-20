@@ -1,5 +1,3 @@
-import wave
-
 import numpy as np
 from numpy.random import Generator
 
@@ -7,15 +5,17 @@ from . import base
 from .coder import Encoder
 from .utils.random import get_rng
 from .utils.random_tools import get_random_bytes
-from .wave_helper import WaveReadHelper, WaveWriteHelper
 
 
 class EmbedError(Exception):
     pass
 
-def embed(raw_audio: wave.Wave_read, data: bytes, output_audio: wave.Wave_write, encoder: Encoder, embedder: base.BaseEmbedder) -> None:
-    read_helper = WaveReadHelper(raw_audio)
-    raw_channels, frame_num = read_helper.read(-1)
+def embed(raw_channels: list[np.ndarray[tuple[int], np.dtype[np.float64]]], data: bytes, encoder: Encoder, embedder: base.BaseEmbedder) -> list[np.ndarray[tuple[int], np.dtype[np.float64]]]:
+    assert len(raw_channels) > 0
+    frame_num = raw_channels[0].shape[0]
+    for channel in raw_channels:
+        assert channel.shape[0] == frame_num
+
     output_channels = [np.empty(frame_num) for _ in raw_channels]
 
     full_data = len(data).to_bytes(4, 'little') + data
@@ -31,8 +31,8 @@ def embed(raw_audio: wave.Wave_read, data: bytes, output_audio: wave.Wave_write,
     i = 0
     while i < len(packets):
         earliest_channel = 0
-        for j, each in enumerate(channel_pointers):
-            if each < channel_pointers[earliest_channel]:
+        for j, pointer in enumerate(channel_pointers):
+            if pointer < channel_pointers[earliest_channel]:
                 earliest_channel = j
         p = channel_pointers[earliest_channel]
         if frame_num - p < wave_length:
@@ -51,8 +51,8 @@ def embed(raw_audio: wave.Wave_read, data: bytes, output_audio: wave.Wave_write,
 
     while True:
         earliest_channel = 0
-        for j, each in enumerate(channel_pointers):
-            if each < channel_pointers[earliest_channel]:
+        for j, pointer in enumerate(channel_pointers):
+            if pointer < channel_pointers[earliest_channel]:
                 earliest_channel = j
         p = channel_pointers[earliest_channel]
         if frame_num - p < wave_length:
@@ -69,8 +69,7 @@ def embed(raw_audio: wave.Wave_read, data: bytes, output_audio: wave.Wave_write,
             output_channels[earliest_channel][p] = raw_channels[earliest_channel][p]
             channel_pointers[earliest_channel] += 1
 
-    for i, each in enumerate(channel_pointers):
-        output_channels[i][each:] = raw_channels[i][each:]
+    for i, pointer in enumerate(channel_pointers):
+        output_channels[i][pointer:] = raw_channels[i][pointer:]
 
-    write_helper = WaveWriteHelper(output_audio)
-    write_helper.write(output_channels)
+    return output_channels
