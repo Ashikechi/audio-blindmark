@@ -5,7 +5,7 @@ from audio_blindmark.base import BaseEmbedder, BaseExtractor, EmbedError, Extrac
 data_list: list[bytes] = []
 data_to_index: dict[bytes, int] = {}
 
-class FakeEmbedder(BaseEmbedder):
+class MockEmbedder(BaseEmbedder):
     def wave_length(self) -> int:
         return self.data_length() << 3
 
@@ -28,7 +28,7 @@ class FakeEmbedder(BaseEmbedder):
         r[0] = r[1] = r[2] = r[-3] = r[-2] = r[-1] = index
         return r
 
-class FakeExtractor(BaseExtractor):
+class MockExtractor(BaseExtractor):
     def wave_length(self) -> int:
         return self.data_length() << 3
 

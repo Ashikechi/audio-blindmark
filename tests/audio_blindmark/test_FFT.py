@@ -1,132 +1,124 @@
 # pylint: disable=C0103
-import wave
-
 import pytest
-from aquatk.metrics.PEAQ import PEAQ
 from pytest_benchmark.fixture import BenchmarkFixture
 
 from audio_blindmark import *  # pylint: disable=W0401
 from audio_blindmark.steganographier.FFT import FFTEmbedder, FFTExtractor
 from audio_blindmark.utils.random import seed
 
-from .utils import add_compression_noise, zoom
+from .attackers import add_compression_noise, zoom
+from .audios import LONG_AUDIOS, SHORT_AUDIOS, attacked_audio_path, output_audio_path, raw_audio_path
+from .utils import generate_PEAQ_report, read_wave, write_wave
 
 KEY = b'Madoka'
-ECC_LENGTH = 2
 DATA = b'Saa, kanaete yo! Inkyubeitaa!' * 4
 
 WAVE_LENGTH = 4096
 DATA_LENGTH = 128
 
-MEDIA_DIR = 'assets/audio/'
-
-REF_AUDIO = MEDIA_DIR + 'sample.wav'
-OUTPUT_AUDIO = MEDIA_DIR + 'output_FFT.wav'
-
-PEAQ_REPORT_FILE = 'reports/FFT.txt'
-
-OUTPUT_AUDIO_MP3 = MEDIA_DIR + 'output_FFT.mp3.wav'
-OUTPUT_AUDIO_OGG = MEDIA_DIR + 'output_FFT.ogg.wav'
-OUTPUT_AUDIO_ZOOM = MEDIA_DIR + 'output_FFT.zoom.wav'
-
 def test_FFT():
-    seed(42)
-    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
-    encoder = Encoder(KEY, ECC_LENGTH)
-    with wave.open(REF_AUDIO, 'r') as raw_audio:
-        with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
-            output_audio.setparams(raw_audio.getparams())
-            embed(raw_audio, DATA, output_audio, encoder, embedder)
+    ECC_LENGTH = 2
 
-    extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
-    decoder = Decoder(KEY, ECC_LENGTH)
-    with wave.open(OUTPUT_AUDIO, 'r') as audio:
-        assert extract(audio, decoder, extractor) == DATA
+    for audio in SHORT_AUDIOS:
+        seed(42)
 
-    peaq = PEAQ(version="advanced")
-    result = peaq.analyze_files(REF_AUDIO, OUTPUT_AUDIO)
-    with open(PEAQ_REPORT_FILE, 'w', encoding='utf-8') as f:
-        f.write(str(result))
+        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(output_audio_path(audio, 'FFT'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
+
+        extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
+        decoder = Decoder(KEY, ECC_LENGTH)
+        assert extract(read_wave(output_audio_path(audio, 'FFT'))[0], decoder, extractor) == DATA
+
+        generate_PEAQ_report(audio, 'FFT')
 
 @pytest.mark.skip
 def test_FFT_with_mp3():
-    quantum = 2
+    ECC_LENGTH = 2
+    QUANTUM = 2
 
-    seed(42)
-    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
-    encoder = Encoder(KEY, ECC_LENGTH)
-    with wave.open(REF_AUDIO, 'r') as raw_audio:
-        with wave.open(OUTPUT_AUDIO_MP3, 'w') as output_audio:
-            output_audio.setparams(raw_audio.getparams())
-            embed(raw_audio, DATA, output_audio, encoder, embedder)
+    for audio in SHORT_AUDIOS:
+        seed(42)
 
-    add_compression_noise(OUTPUT_AUDIO_MP3, OUTPUT_AUDIO_MP3, 'mp3')
+        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(attacked_audio_path(audio, 'FFT', 'mp3'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-    extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
-    decoder = Decoder(KEY, ECC_LENGTH)
-    with wave.open(OUTPUT_AUDIO_MP3, 'r') as audio:
-        assert extract(audio, decoder, extractor) == DATA
+        add_compression_noise(attacked_audio_path(audio, 'FFT', 'mp3'), attacked_audio_path(audio, 'FFT', 'mp3'), 'mp3')
+
+        extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
+        decoder = Decoder(KEY, ECC_LENGTH)
+        assert extract(read_wave(attacked_audio_path(audio, 'FFT', 'mp3'))[0], decoder, extractor) == DATA
 
 @pytest.mark.skip
 def test_FFT_with_ogg():
-    quantum = 2
+    ECC_LENGTH = 2
+    QUANTUM = 2
 
-    seed(42)
-    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
-    encoder = Encoder(KEY, ECC_LENGTH)
-    with wave.open(REF_AUDIO, 'r') as raw_audio:
-        with wave.open(OUTPUT_AUDIO_OGG, 'w') as output_audio:
-            output_audio.setparams(raw_audio.getparams())
-            embed(raw_audio, DATA, output_audio, encoder, embedder)
+    for audio in SHORT_AUDIOS:
+        seed(42)
 
-    add_compression_noise(OUTPUT_AUDIO_OGG, OUTPUT_AUDIO_OGG, 'ogg')
+        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(attacked_audio_path(audio, 'FFT', 'ogg'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-    extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=quantum)
-    decoder = Decoder(KEY, ECC_LENGTH)
-    with wave.open(OUTPUT_AUDIO_OGG, 'r') as audio:
-        assert extract(audio, decoder, extractor) == DATA
+        add_compression_noise(attacked_audio_path(audio, 'FFT', 'ogg'), attacked_audio_path(audio, 'FFT', 'ogg'), 'ogg')
 
-def test_DCT_with_zoom():
-    seed(42)
-    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
-    encoder = Encoder(KEY, ECC_LENGTH)
-    with wave.open(REF_AUDIO, 'r') as raw_audio:
-        with wave.open(OUTPUT_AUDIO_ZOOM, 'w') as output_audio:
-            output_audio.setparams(raw_audio.getparams())
-            embed(raw_audio, DATA, output_audio, encoder, embedder)
+        extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
+        decoder = Decoder(KEY, ECC_LENGTH)
+        assert extract(read_wave(attacked_audio_path(audio, 'FFT', 'ogg'))[0], decoder, extractor) == DATA
 
-    zoom(OUTPUT_AUDIO_ZOOM, OUTPUT_AUDIO_ZOOM, 1.2)
+def test_FFT_with_zoom():
+    ECC_LENGTH = 2
 
-    extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
-    decoder = Decoder(KEY, ECC_LENGTH)
-    with wave.open(OUTPUT_AUDIO_ZOOM, 'r') as audio:
-        assert extract(audio, decoder, extractor) == DATA
+    for audio in SHORT_AUDIOS:
+        seed(42)
+
+        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(attacked_audio_path(audio, 'FFT', 'zoom'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
+
+        zoom(attacked_audio_path(audio, 'FFT', 'zoom'), attacked_audio_path(audio, 'FFT', 'zoom'), 1.2)
+
+        extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
+        decoder = Decoder(KEY, ECC_LENGTH)
+        assert extract(read_wave(attacked_audio_path(audio, 'FFT', 'zoom'))[0], decoder, extractor) == DATA
 
 @pytest.mark.benchmark(group='FFT-embed')
 def test_benchmark_FFT_embed(benchmark: BenchmarkFixture):
+    ECC_LENGTH = 2
+
     def do():
-        seed(42)
-        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
-        encoder = Encoder(KEY, ECC_LENGTH)
-        with wave.open(REF_AUDIO, 'r') as raw_audio:
-            with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
-                output_audio.setparams(raw_audio.getparams())
-                embed(raw_audio, DATA, output_audio, encoder, embedder)
+        for audio in LONG_AUDIOS:
+            seed(42)
+
+            embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
+            encoder = Encoder(KEY, ECC_LENGTH)
+            raw_channels, _, _ = read_wave(raw_audio_path(audio))
+            embed(raw_channels, DATA, encoder, embedder)
+
     benchmark(do)
 
 @pytest.mark.benchmark(group='FFT-extract')
 def test_benchmark_FFT_extract(benchmark: BenchmarkFixture):
-    def do():
-        extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
-        decoder = Decoder(KEY, ECC_LENGTH)
-        with wave.open(OUTPUT_AUDIO, 'r') as audio:
-            extract(audio, decoder, extractor)
+    ECC_LENGTH = 2
 
-    seed(42)
-    embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
-    encoder = Encoder(KEY, ECC_LENGTH)
-    with wave.open(REF_AUDIO, 'r') as raw_audio:
-        with wave.open(OUTPUT_AUDIO, 'w') as output_audio:
-            output_audio.setparams(raw_audio.getparams())
-            embed(raw_audio, DATA, output_audio, encoder, embedder)
+    def do():
+        for audio in LONG_AUDIOS:
+            extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
+            decoder = Decoder(KEY, ECC_LENGTH)
+            extract(read_wave(output_audio_path(audio, 'FFT'))[0], decoder, extractor)
+
+    for audio in LONG_AUDIOS:
+        seed(42)
+
+        embedder = FFTEmbedder(WAVE_LENGTH, DATA_LENGTH)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(output_audio_path(audio, 'FFT'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
+
     benchmark(do)

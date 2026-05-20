@@ -53,14 +53,14 @@ def test_reedsolo_erase_pos():
     assert list(errata_pos) == [0, 1, 2]
 
 @pytest.mark.benchmark(group = 'reedsolo-encode')
-def test_reedsolo_benchmark_encode(benchmark: BenchmarkFixture):
+def test_benchmark_reedsolo_encode(benchmark: BenchmarkFixture):
     random.seed(42)
     rsc = RSCodec(32)
     msg = list(random.randbytes(1024))
     benchmark(rsc.encode, msg)
 
 @pytest.mark.benchmark(group = 'reedsolo-decode')
-def test_reedsolo_benchmark_decode(benchmark: BenchmarkFixture):
+def test_benchmark_reedsolo_decode(benchmark: BenchmarkFixture):
     random.seed(42)
     rsc = RSCodec(32)
     msg = random.randbytes(1024)
