@@ -6,7 +6,7 @@ from audio_blindmark import *  # pylint: disable=W0401
 from audio_blindmark.steganographier.LSB import LSBEmbedder, LSBExtractor
 from audio_blindmark.utils.random import seed
 
-from .attackers import add_compression_noise, zoom
+from .attackers import lossy_compression, resample, zoom
 from .audios import LONG_AUDIOS, SHORT_AUDIOS, attacked_audio_path, output_audio_path, raw_audio_path
 from .utils import generate_PEAQ_report, read_wave, write_wave
 
@@ -44,7 +44,7 @@ def test_LSB_with_mp3():
         raw_channels, width, framerate = read_wave(raw_audio_path(audio))
         write_wave(attacked_audio_path(audio, 'LSB', 'mp3'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-        add_compression_noise(attacked_audio_path(audio, 'LSB', 'mp3'), attacked_audio_path(audio, 'LSB', 'mp3'), 'mp3')
+        lossy_compression(attacked_audio_path(audio, 'LSB', 'mp3'), attacked_audio_path(audio, 'LSB', 'mp3'), 'mp3')
 
         extractor = LSBExtractor(DATA_LENGTH)
         decoder = Decoder(KEY, ECC_LENGTH)
@@ -62,14 +62,32 @@ def test_LSB_with_ogg():
         raw_channels, width, framerate = read_wave(raw_audio_path(audio))
         write_wave(attacked_audio_path(audio, 'LSB', 'ogg'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-        add_compression_noise(attacked_audio_path(audio, 'LSB', 'ogg'), attacked_audio_path(audio, 'LSB', 'ogg'), 'ogg')
+        lossy_compression(attacked_audio_path(audio, 'LSB', 'ogg'), attacked_audio_path(audio, 'LSB', 'ogg'), 'ogg')
 
         extractor = LSBExtractor(DATA_LENGTH)
         decoder = Decoder(KEY, ECC_LENGTH)
         assert extract(read_wave(attacked_audio_path(audio, 'LSB', 'ogg'))[0], decoder, extractor) == DATA
 
 @pytest.mark.skip
-def test_DCT_with_zoom():
+def test_LSB_with_resample():
+    ECC_LENGTH = 2
+
+    for audio in SHORT_AUDIOS:
+        seed(42)
+
+        embedder = LSBEmbedder(DATA_LENGTH)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(attacked_audio_path(audio, 'LSB', 'resample'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
+
+        resample(attacked_audio_path(audio, 'LSB', 'resample'), attacked_audio_path(audio, 'LSB', 'resample'), 24000)
+
+        extractor = LSBExtractor(DATA_LENGTH)
+        decoder = Decoder(KEY, ECC_LENGTH)
+        assert extract(read_wave(attacked_audio_path(audio, 'LSB', 'resample'))[0], decoder, extractor) == DATA
+
+@pytest.mark.skip
+def test_LSB_with_zoom():
     ECC_LENGTH = 2
 
     for audio in SHORT_AUDIOS:
