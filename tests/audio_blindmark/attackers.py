@@ -5,11 +5,17 @@ from pydub import AudioSegment
 from .utils import read_wave, write_wave
 
 
-def add_compression_noise(audio: str | Path, compressed_audio: str | Path, form: str) -> None:
+def lossy_compression(audio: str | Path, compressed_audio: str | Path, form: str) -> None:
     wave = AudioSegment.from_wav(audio)
     wave.export(compressed_audio, format=form)
     wave = AudioSegment.from_file(compressed_audio, format=form)
     wave.export(compressed_audio, format='wav')
+
+def resample(audio: str | Path, resampled_audio: str | Path, frame_rate: int) -> None:
+    wave = AudioSegment.from_wav(audio)
+    original_frame_rate = wave.frame_rate
+    resampled_wave = wave.set_frame_rate(frame_rate).set_frame_rate(original_frame_rate)
+    resampled_wave.export(resampled_audio, format='wav')
 
 def zoom(audio: str | Path, zoomed_audio: str | Path, factor: float) -> None:
     wave, width, framerate = read_wave(audio)
