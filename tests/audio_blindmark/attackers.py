@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy as np
 from pydub import AudioSegment
+from scipy import signal
+
 from audio_blindmark.utils.random import get_rng
 
 from .utils import read_wave, write_wave
@@ -10,7 +12,23 @@ from .utils import read_wave, write_wave
 
 def white_noise(audio: str | Path, audio_with_noise: str | Path, factor: float) -> None:
     channels, sampwidth, framerate = read_wave(audio)
-    channels_with_noise = [channel + np.random.Generator(get_rng()).uniform(-1, 1, channel.shape) * np.sqrt(np.dot(channel, channel) / channel.shape[0]) * factor for channel in channels]
+    channels_with_noise = []
+    for channel in channels:
+        white_noise = np.random.Generator(get_rng()).normal(0, 1, channel.shape)
+        channels_with_noise.append(channel + white_noise * np.sqrt(np.dot(channel, channel) / channel.shape[0]) * factor)
+    write_wave(audio_with_noise, channels_with_noise, sampwidth, framerate)
+
+def pink_noise(audio: str | Path, audio_with_noise: str | Path, factor: float) -> None:
+    B = [0.049922035, -0.095993537, 0.050612699, -0.004408786]
+    A = [1, -2.494956002, 2.017265875, -0.522189400]
+
+    channels, sampwidth, framerate = read_wave(audio)
+    channels_with_noise = []
+    for channel in channels:
+        white_noise = np.random.Generator(get_rng()).normal(0, 1, channel.shape)
+        pink_noise = signal.lfilter(B, A, white_noise)
+        pink_noise /= np.sqrt(np.dot(pink_noise, pink_noise) / pink_noise.shape[0])
+        channels_with_noise.append(channel + pink_noise * np.sqrt(np.dot(channel, channel) / channel.shape[0]) * factor)
     write_wave(audio_with_noise, channels_with_noise, sampwidth, framerate)
 
 def lossy_compression(audio: str | Path, compressed_audio: str | Path, form: str) -> None:
