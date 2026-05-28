@@ -6,7 +6,7 @@ from audio_blindmark import *  # pylint: disable=W0401
 from audio_blindmark.steganographier.DCT import DCTEmbedder, DCTExtractor
 from audio_blindmark.utils.random import seed
 
-from .attackers import lossy_compression, resample, white_noise, zoom
+from .attackers import lossy_compression, pink_noise, resample, white_noise, zoom
 from .audios import LONG_AUDIOS, SHORT_AUDIOS, attacked_audio_path, output_audio_path, raw_audio_path
 from .utils import generate_PEAQ_report, read_wave, write_wave
 
@@ -34,7 +34,7 @@ def test_DCT():
         generate_PEAQ_report(audio, 'DCT')
 
 def test_DCT_with_white_noise():
-    ECC_LENGTH = 2
+    ECC_LENGTH = 16
     QUANTUM = 1 / 4
 
     for audio in SHORT_AUDIOS:
@@ -50,6 +50,24 @@ def test_DCT_with_white_noise():
         extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
         decoder = Decoder(KEY, ECC_LENGTH)
         assert extract(read_wave(attacked_audio_path(audio, 'DCT', 'white_noise'))[0], decoder, extractor) == DATA
+
+def test_DCT_with_pink_noise():
+    ECC_LENGTH = 16
+    QUANTUM = 1 / 4
+
+    for audio in SHORT_AUDIOS:
+        seed(42)
+
+        embedder = DCTEmbedder(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(attacked_audio_path(audio, 'DCT', 'pink_noise'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
+
+        pink_noise(attacked_audio_path(audio, 'DCT', 'pink_noise'), attacked_audio_path(audio, 'DCT', 'pink_noise'), 0.1)
+
+        extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
+        decoder = Decoder(KEY, ECC_LENGTH)
+        assert extract(read_wave(attacked_audio_path(audio, 'DCT', 'pink_noise'))[0], decoder, extractor) == DATA
 
 def test_DCT_with_mp3():
     ECC_LENGTH = 32
