@@ -6,7 +6,7 @@ from audio_blindmark import *  # pylint: disable=W0401
 from audio_blindmark.steganographier.LSB import LSBEmbedder, LSBExtractor
 from audio_blindmark.utils.random import seed
 
-from .attackers import lossy_compression, resample, zoom
+from .attackers import lossy_compression, resample, white_noise, zoom
 from .audios import LONG_AUDIOS, SHORT_AUDIOS, attacked_audio_path, output_audio_path, raw_audio_path
 from .utils import generate_PEAQ_report, read_wave, write_wave
 
@@ -31,6 +31,24 @@ def test_LSB():
         assert extract(read_wave(output_audio_path(audio, 'LSB'))[0], decoder, extractor) == DATA
 
         generate_PEAQ_report(audio, 'LSB')
+
+@pytest.mark.skip
+def test_LSB_with_white_noise():
+    ECC_LENGTH = 2
+
+    for audio in SHORT_AUDIOS:
+        seed(42)
+
+        embedder = LSBEmbedder(DATA_LENGTH)
+        encoder = Encoder(KEY, ECC_LENGTH)
+        raw_channels, width, framerate = read_wave(raw_audio_path(audio))
+        write_wave(attacked_audio_path(audio, 'LSB', 'white_noise'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
+
+        white_noise(attacked_audio_path(audio, 'LSB', 'white_noise'), attacked_audio_path(audio, 'LSB', 'white_noise'), 0.05)
+
+        extractor = LSBExtractor(DATA_LENGTH)
+        decoder = Decoder(KEY, ECC_LENGTH)
+        assert extract(read_wave(attacked_audio_path(audio, 'LSB', 'white_noise'))[0], decoder, extractor) == DATA
 
 @pytest.mark.skip
 def test_LSB_with_mp3():

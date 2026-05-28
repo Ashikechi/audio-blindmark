@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.random import Generator
 
 from . import base
 from .coder import Encoder
@@ -58,7 +57,7 @@ def embed(raw_channels: list[np.ndarray[tuple[int], np.dtype[np.float64]]], data
         if frame_num - p < wave_length:
             break
 
-        seq = int(Generator(get_rng()).integers(0, len(packets)))
+        seq = int(np.random.Generator(get_rng()).integers(0, len(packets)))
         try:
             output_channels[earliest_channel][p:p + wave_length] = embedder.embed(
                 raw_channels[earliest_channel][p:p + wave_length],

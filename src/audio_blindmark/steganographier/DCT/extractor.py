@@ -7,7 +7,7 @@ from ...base import BaseExtractor
 
 
 class DCTExtractor(BaseExtractor):
-    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=1 / 4096, iterations: int=3) -> None:
+    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=1 / 1024, iterations: int=3) -> None:
         self.__wave_length = wave_length
         self.__data_length = data_length
         self.quantum = quantum
@@ -37,8 +37,8 @@ class DCTExtractor(BaseExtractor):
         assert wave.shape[0] == self.wave_length()
 
         dct_result = fft.dct(wave, norm='ortho')
-        norm = np.linalg.norm(dct_result)
-        if norm != 0.0:
-            dct_result /= norm
+        factor = np.sqrt(np.dot(dct_result, dct_result) / dct_result.shape[0])
+        if factor != 0.0:
+            dct_result /= factor
 
         return np.packbits((dct_result[self.points] // self.quantum).astype(np.int64) % 2).tobytes()

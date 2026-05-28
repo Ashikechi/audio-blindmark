@@ -8,7 +8,7 @@ from ...base import BaseEmbedder, EmbedError
 
 
 class DCTEmbedder(BaseEmbedder):
-    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=1 / 4096, min_average_energy: float=256, iterations: int=3) -> None:
+    def __init__(self, wave_length: int=4096, data_length: int=64, center: Optional[int]=None, quantum: float=1 / 1024, min_average_energy: float=256, iterations: int=3) -> None:
         self.__wave_length = wave_length
         self.__data_length = data_length
         self.quantum = quantum
@@ -44,14 +44,14 @@ class DCTEmbedder(BaseEmbedder):
         bits = bitarray(data)
 
         dct_result = fft.dct(wave, norm='ortho')
-        energy = np.dot(dct_result, dct_result)
+        average_energy = np.dot(dct_result, dct_result) / wave.shape[0]
 
         for _ in range(self.iterations):
-            norm = np.sqrt(energy)
+            factor = np.sqrt(average_energy)
             for pos, bit in zip(self.points, bits):
-                energy -= dct_result[pos] ** 2
+                average_energy -= dct_result[pos] ** 2 / wave.shape[0]
 
-                q = (dct_result[pos] / norm) // (self.quantum / 2)
+                q = (dct_result[pos] / factor) // (self.quantum / 2)
                 if q % 4 // 2 == bit:
                     q = q // 2 * 2 + 1
                 else:
@@ -59,8 +59,8 @@ class DCTEmbedder(BaseEmbedder):
                         q -= 1
                     else:
                         q += 2
-                dct_result[pos] = q * (self.quantum / 2) * norm
+                dct_result[pos] = q * (self.quantum / 2) * factor
 
-                energy += dct_result[pos] ** 2
+                average_energy += dct_result[pos] ** 2 / wave.shape[0]
 
         return fft.idct(dct_result, norm='ortho')
