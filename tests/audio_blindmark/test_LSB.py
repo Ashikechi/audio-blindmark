@@ -134,7 +134,7 @@ def test_LSB_with_zoom():
         raw_channels, width, framerate = read_wave(raw_audio_path(audio))
         write_wave(attacked_audio_path(audio, 'LSB', 'zoom'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-        zoom(attacked_audio_path(audio, 'LSB', 'zoom'), attacked_audio_path(audio, 'LSB', 'zoom'), 1.2)
+        zoom(attacked_audio_path(audio, 'LSB', 'zoom'), attacked_audio_path(audio, 'LSB', 'zoom'), 0.8)
 
         extractor = LSBExtractor(DATA_LENGTH)
         decoder = Decoder(KEY, ECC_LENGTH)

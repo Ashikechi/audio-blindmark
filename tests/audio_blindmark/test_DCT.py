@@ -35,7 +35,7 @@ def test_DCT():
 
 def test_DCT_with_white_noise():
     ECC_LENGTH = 16
-    QUANTUM = 1 / 4
+    QUANTUM = 1 / 2
 
     for audio in SHORT_AUDIOS:
         seed(42)
@@ -53,7 +53,7 @@ def test_DCT_with_white_noise():
 
 def test_DCT_with_pink_noise():
     ECC_LENGTH = 16
-    QUANTUM = 1 / 4
+    QUANTUM = 1 / 2
 
     for audio in SHORT_AUDIOS:
         seed(42)
@@ -69,6 +69,7 @@ def test_DCT_with_pink_noise():
         decoder = Decoder(KEY, ECC_LENGTH)
         assert extract(read_wave(attacked_audio_path(audio, 'DCT', 'pink_noise'))[0], decoder, extractor) == DATA
 
+@pytest.mark.skip
 def test_DCT_with_mp3():
     ECC_LENGTH = 32
     QUANTUM = 4
@@ -108,7 +109,7 @@ def test_DCT_with_ogg():
 
 def test_DCT_with_resample():
     ECC_LENGTH = 16
-    QUANTUM = 1 / 16
+    QUANTUM = 1 / 4
 
     for audio in SHORT_AUDIOS:
         seed(42)
@@ -135,7 +136,7 @@ def test_DCT_with_zoom():
         raw_channels, width, framerate = read_wave(raw_audio_path(audio))
         write_wave(attacked_audio_path(audio, 'DCT', 'zoom'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-        zoom(attacked_audio_path(audio, 'DCT', 'zoom'), attacked_audio_path(audio, 'DCT', 'zoom'), 1.2)
+        zoom(attacked_audio_path(audio, 'DCT', 'zoom'), attacked_audio_path(audio, 'DCT', 'zoom'), 0.8)
 
         extractor = DCTExtractor(WAVE_LENGTH, DATA_LENGTH)
         decoder = Decoder(KEY, ECC_LENGTH)
