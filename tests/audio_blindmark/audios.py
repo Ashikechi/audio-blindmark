@@ -4,11 +4,19 @@ AUDIO_DIR = Path('assets/audio/')
 REPORT_DIR = Path('reports/')
 
 SHORT_AUDIOS = [
-    'sample_short',
+    '1_short',
+    '2_short',
+    '3_short',
+    # '4_short',
+    '5_short',
 ]
 
 LONG_AUDIOS = [
-    'sample_short',
+    '1_long',
+    '2_long',
+    '3_long',
+    # '4_long',
+    '5_long',
 ]
 
 ALL_AUDIOS = SHORT_AUDIOS + LONG_AUDIOS

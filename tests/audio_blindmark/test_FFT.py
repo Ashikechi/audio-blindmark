@@ -45,7 +45,7 @@ def test_FFT_with_white_noise():
         raw_channels, width, framerate = read_wave(raw_audio_path(audio))
         write_wave(attacked_audio_path(audio, 'FFT', 'white_noise'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-        white_noise(attacked_audio_path(audio, 'FFT', 'white_noise'), attacked_audio_path(audio, 'FFT', 'white_noise'), 0.005)
+        white_noise(attacked_audio_path(audio, 'FFT', 'white_noise'), attacked_audio_path(audio, 'FFT', 'white_noise'), 0.001)
 
         extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
         decoder = Decoder(KEY, ECC_LENGTH)
@@ -63,7 +63,7 @@ def test_FFT_with_pink_noise():
         raw_channels, width, framerate = read_wave(raw_audio_path(audio))
         write_wave(attacked_audio_path(audio, 'FFT', 'pink_noise'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-        pink_noise(attacked_audio_path(audio, 'FFT', 'pink_noise'), attacked_audio_path(audio, 'FFT', 'pink_noise'), 0.01)
+        pink_noise(attacked_audio_path(audio, 'FFT', 'pink_noise'), attacked_audio_path(audio, 'FFT', 'pink_noise'), 0.003)
 
         extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH, quantum=QUANTUM)
         decoder = Decoder(KEY, ECC_LENGTH)
@@ -137,7 +137,7 @@ def test_FFT_with_zoom():
         raw_channels, width, framerate = read_wave(raw_audio_path(audio))
         write_wave(attacked_audio_path(audio, 'FFT', 'zoom'), embed(raw_channels, DATA, encoder, embedder), width, framerate)
 
-        zoom(attacked_audio_path(audio, 'FFT', 'zoom'), attacked_audio_path(audio, 'FFT', 'zoom'), 1.2)
+        zoom(attacked_audio_path(audio, 'FFT', 'zoom'), attacked_audio_path(audio, 'FFT', 'zoom'), 0.8)
 
         extractor = FFTExtractor(WAVE_LENGTH, DATA_LENGTH)
         decoder = Decoder(KEY, ECC_LENGTH)
